@@ -732,7 +732,7 @@ def check_rss():
 	to = None
 	for tmp in Settings:
 		if tmp['whoami'] == 'rss':
-			to = getRoom(tmp['jid'])
+			to, limit = getRoom(tmp['jid']),tmp['msglimit']
 			break
 	if not to: return
 	l_hl = int(time.time())
@@ -748,8 +748,9 @@ def check_rss():
 		try: ll_hl = int(fd[3])
 		except: ll_hl = 0
 		if ll_hl + ofset <= l_hl:
-			pprint('check rss: '+fd[0]+' in '+fd[4])
-			rss('new '+fd[0]+' 10 '+fd[2]+' silent',fd[4],'chat',to)
+			pprint('check rss: '+fd[0]+' for '+fd[4])
+			text = rss('new '+fd[0]+' 20 '+fd[2]+' silent',fd[4],'chat',to)
+			if text: sender(xmpp.Message(fd[4], text[:limit], 'chat'),to)
 			feedbase.remove(fd)
 			feedbase.append([fd[0], fd[1], fd[2], l_hl, fd[4]])
 			writefile(feeds,str(feedbase))
