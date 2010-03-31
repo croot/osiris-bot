@@ -733,7 +733,7 @@ def check_rss():
 	for tmp in Settings:
 		if tmp['whoami'] == 'rss':
 			to = getRoom(tmp['jid'])
-				break
+			break
 	if not to: return
 	l_hl = int(time.time())
 	feedbase = getFile(feeds,[])
