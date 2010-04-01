@@ -152,20 +152,18 @@ def html_encode(body):
 
 def rss(text,jid,type,to):
 	global feedbase, feeds,	lastfeeds, lafeeds
-	msg = u'show|add|del|clear|new|get'
-	nosend = 0
 	text = text.split(' ')
 	tl = len(text)
 	if tl < 5: text.append('!')
 	mode = text[0].lower() # show | add | del | clear | new | get
-	if mode == 'add' and tl < 4: msg,mode = 'add [http://]url timeH|M [full|body|head][-url]',''
-	elif mode == 'del' and tl < 2: msg,mode = 'del [http://]url',''
-	elif mode == 'new' and tl < 4: msg,mode = 'new [http://]url max_feed_humber [full|body|head][-url]',''
-	elif mode == 'get' and tl < 4: msg,mode = 'get [http://]url max_feed_humber [full|body|head][-url]',''
+	if mode == 'add' and tl < 4: return 'add [http://]url timeH|M full|body|head[-url][-headline]'
+	elif mode == 'del' and tl < 2: return 'del [http://]url'
+	elif mode == 'new' and tl < 4: return 'new [http://]url max_feed_humber full|body|head[-url][-headline]'
+	elif mode == 'get' and tl < 4: return 'get [http://]url max_feed_humber full|body|head[-url][-headline]'
 	lastfeeds = getFile(lafeeds,[])
 	if mode == 'clear':
 		feedbase = getFile(feeds,[])
-		msg, tf = L('All RSS was cleared!'), []
+		tf = []
 		for taa in feedbase:
 			if taa[4] != jid: tf.append(taa)
 		feedbase = tf
@@ -175,6 +173,7 @@ def rss(text,jid,type,to):
 			if taa[2] == jid: tf.append(taa)
 		lastfeeds = tf
 		writefile(lafeeds,str(lastfeeds))
+		return L('All RSS was cleared!')
 	elif mode == 'show':
 		feedbase = getFile(feeds,[])
 		msg = L('No RSS found!')
@@ -185,11 +184,11 @@ def rss(text,jid,type,to):
 					msg += u'\n'+rs[0]+u' ('+rs[1]+u') '+rs[2]
 					try: msg += u' - '+time.ctime(rs[3])
 					except: msg += u' - Unknown'
-			if len(msg): msg = L('Schedule feeds for %s:%s') % (jid,msg)
-			else: msg = L('Schedule feeds for %s not found!') % jid
+			if len(msg): return L('Schedule feeds for %s:%s') % (jid,msg)
+			else: return L('Schedule feeds for %s not found!') % jid
 	elif mode == 'add':
-		mdd = ['full','body','head','full-url','body-url','head-url']
-		if text[3] not in mdd: return L('Mode %s not detected!') % text[3]
+		mdd = ['full','body','head']
+		if text[3].split('-')[0] not in mdd: return L('Mode %s not detected!') % text[3]
 		feedbase = getFile(feeds,[])
 		link = text[1]
 		if not link[:10].count('://'): link = 'http://'+link
@@ -221,12 +220,12 @@ def rss(text,jid,type,to):
 			if len(text) > 3: submode = text[3]
 			else: submode = 'full'
 			msg = L('Feeds for')+' '
-			if submode[-4:] == '-url':
-				submode = submode[:-4]
-				urlmode = True
+			if 'url' in submode.split('-'): urlmode = True
 			else:
 				urlmode = None
 				msg += link+' '
+			headline = 'headline' in submode.split('-')
+			submode = submode.split('-')[0]
 			msg += get_tag(feed[0],'title') + '\n'
 			try:
 				mmsg = feed[1]
@@ -250,7 +249,7 @@ def rss(text,jid,type,to):
 					tu2 = mmsg.find('href=\"',tu1)+6
 					tu3 = mmsg.find('\"',tu2)
 					turl = mmsg[tu2:tu3].replace('&lt;br&gt;','\n')
-				msg += u'—\n• '
+				msg += u'• '
 				if submode == 'full':
 					msg += ttitle+ '\n'
 					msg += tbody + '\n\n'
@@ -258,14 +257,14 @@ def rss(text,jid,type,to):
 				elif submode[:4] == 'head': msg += ttitle + '\n'
 				else: return None
 				if urlmode: msg += turl+'\n'
-				msg = replacer(msg)
+				return replacer(msg)
 			except:
-				if text[4] == 'silent': nosend = 1
-				else: msg = L('Error!')
+				if text[4] == 'silent': return None
+				else: return L('Error!')
 		else:
 			if feed != L('Encoding error!'): title = get_tag(feed,'title')
 			else: title = feed
-			msg = L('Bad url or rss/atom not found at %s - %s') % (link,title)
+			return L('Bad url or rss/atom not found at %s - %s') % (link,title)
 	elif mode == 'del':
 		feedbase = getFile(feeds,[])
 		link = text[1]
@@ -274,14 +273,13 @@ def rss(text,jid,type,to):
 		for rs in feedbase:
 			if rs[0] == link and rs[4] == jid:
 				feedbase.remove(rs)
-				msg = L('Delete feed from schedule: %s') % link
 				writefile(feeds,str(feedbase))
 				for rs in lastfeeds:
 					if rs[0] == link and rs[2] == jid:
 						lastfeeds.remove(rs)
 						writefile(lafeeds,str(lastfeeds))
 						break
-				break
+				return L('Delete feed from schedule: %s') % link
 	elif mode == 'new' or mode == 'get':
 		link = text[1]
 		if not link[:10].count('://'): link = 'http://'+link
@@ -299,18 +297,18 @@ def rss(text,jid,type,to):
 			if len(text) > 2: lng = int(text[2])+1
 			else: lng = len(feed)
 			if len(feed) <= lng: lng = len(feed)
-			if lng>=11: lng = 11
+			if lng>=21: lng = 21
 			if len(text) > 3: submode = text[3]
 			else: submode = 'full'
-			msg = L('Feeds for')+' '
-			if submode[-4:] == '-url':
-				submode = submode[:-4]
-				urlmode = True
+			subj = L('Feeds for')+' '
+			if 'url' in submode.split('-'): urlmode = True
 			else:
 				urlmode = None
-				msg += link+' '
+				subj += link+' '
+			headline = 'headline' in submode.split('-')
+			submode = submode.split('-')[0]
 			tstop = ''
-			msg += get_tag(feed[0],'title') + '\n'
+			subj += get_tag(feed[0],'title') + '\n'
 			try:
 				mmsg = feed[1]
 				if is_rss_aton==1: mmsg = get_tag(mmsg,'title') + '\n'
@@ -325,6 +323,7 @@ def rss(text,jid,type,to):
 					except: lastfeeds.remove(dd)
 				lastfeeds.append([link,mmsg,jid])
 				writefile(lafeeds,str(lastfeeds))
+				t_msg = []
 				for mmsg in feed[1:lng]:
 					if is_rss_aton == 1:
 						ttitle = get_tag(mmsg,'title')
@@ -339,30 +338,38 @@ def rss(text,jid,type,to):
 						turl = mmsg[tu2:tu3].replace('&lt;br&gt;','\n')
 					if mode == 'new':
 						if ttitle == tstop: break
-					msg += u'—\n• '
-					if submode == 'full':
-						msg += ttitle + '\n'
-						msg += tbody + '\n\n'
-					elif submode == 'body': msg += tbody + '\n'
-					elif submode[:4] == 'head': msg += ttitle+ '\n'
+					#tmsg += u'—\n• '
+					tmsg, tsubj, tmurl = '','',''
+					if submode == 'full': tmsg,tsubj = tbody,ttitle
+					elif submode == 'body': tmsg = tbody
+					elif submode[:4] == 'head': tsubj = ttitle
 					else: return None
-					if urlmode: msg += turl+'\n'
+					if urlmode: tmurl = turl
+					
+					t_msg.append((tmsg, tsubj, tmurl))
+
 				if mode == 'new':
-					if mmsg == feed[1] and text[4] == 'silent': nosend = 1
-					elif mmsg == feed[1] and text[4] != 'silent': msg = L('New feeds not found!')
-				if submode == 'body' or submode == 'head': msg = msg[:-1]
-				msg = replacer(msg)
+					if mmsg == feed[1] and text[4] == 'silent': return None
+					elif mmsg == feed[1] and text[4] != 'silent': return L('New feeds not found!')
+				#if submode == 'body' or submode == 'head': msg = msg[:-1]
+				if headline: type = 'headline'
+				else: type = 'chat'
+				t_msg.reverse()
+				for tmp in t_msg:
+					tmsg = replacer(tmp[0])
+					if len(tmp[2]): tmsg += '\n\n'+tmp[2]
+					sender(xmpp.Message(to=jid, body=tmsg, typ=type, subject=replacer(tmp[1])),getRoom(to))
+				return None
 			except:
-				if text[4] == 'silent': nosend = 1
-				else: msg = L('Error!')
+				if text[4] == 'silent': return None
+				else: return L('Error!')
 		else:
-			if text[4] == 'silent': nosend = 1
+			if text[4] == 'silent': return None
 			else:
 				if feed != L('Encoding error!'): title = get_tag(feed,'title')
 				else: title = feed
-				msg = L('Bad url or rss/atom not found at %s - %s') % (link,title)
-	if not nosend: return msg
-	else: return None
+				return L('Bad url or rss/atom not found at %s - %s') % (link,title)
+	else: return 'show|add|del|clear|new|get'
 
 class KThread(threading.Thread):
 	def __init__(self, *args, **keywords):
