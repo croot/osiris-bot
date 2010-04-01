@@ -799,20 +799,20 @@ loc_folder = 'locales/'					# папка локализаций
 logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG,)		# включение логгирования
 
 nmbrs = ['0','1','2','3','4','5','6','7','8','9','.']
-debugmode = None				# остановка на ошибках
-dm = None						# отладка xmpppy
-dm2 = None						# отладка действий бота
-CommandsLog = None				# логгирование команд
-botName = 'Osiris-Bot'			# название бота
-botVersion = 'v0.01'			# версия бота
-capsVersion = botVersion[1:]	# версия для капса
-capsNode = 'Osiris-Bot'
-th_cnt = 0						# счётчик тредов
-schedule_time = 10				# время проверки расписания
-thread_error_count = 0			# счётчик ошибок тредов
-reboot_time = 180				# таймаут рестарта бота при ошибке не стадии подключения (нет инета, ошибка авторизации)
-bot_exit_type = None			# причина завершения бота
-thread_type = True				# тип тредов
+debugmode = None						# остановка на ошибках
+dm = None								# отладка xmpppy
+dm2 = None								# отладка действий бота
+CommandsLog = None						# логгирование команд
+botName = 'Osiris-Bot'					# название бота
+botVersion = 'v0.01'					# версия бота
+capsVersion = botVersion[1:]			# версия для капса
+capsNode = 'Osiris-Bot'					# капс бота
+th_cnt = 0								# счётчик тредов
+schedule_time = 10						# время проверки расписания
+thread_error_count = 0					# счётчик ошибок тредов
+reboot_time = 180						# таймаут рестарта бота при ошибке не стадии подключения (нет инета, ошибка авторизации)
+bot_exit_type = None					# причина завершения бота
+thread_type = True						# тип тредов
 message_in = 0
 message_out = 0
 iq_in = 0
@@ -843,6 +843,8 @@ if os.path.isfile('settings/starttime'):
 	except: starttime = readfile('settings/starttime')
 else: starttime = int(time.time())
 sesstime = int(time.time())
+
+if os.path.isfile('version'): botVersion += '.' + str(readfile('version')).replace('\n','')
 
 pprint('*'*50)
 pprint('*** Bot Name: '+botName)

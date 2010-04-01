@@ -40,7 +40,7 @@ except:
 	printlog('\n'+'*'*50+'\n Osiris is crashed! Incorrent launch!\n'+'*'*50+'\n')
 	raise
 
-if os.path.isfile(pid_file):
+'''if os.path.isfile(pid_file):
 	try: last_pid = int(readfile(pid_file))
 	except: crash('Unable get information from %s' % pid_file)
 	try:
@@ -50,6 +50,8 @@ if os.path.isfile(pid_file):
 		if not str(SM).lower().count('no such process'): crash('Unknown exception!\n%s' % SM)
 	
 writefile(pid_file,str(os.getpid()))
+'''
+os.system('echo `svnversion` > version')
 
 while 1:
 	try: execfile('kernel.py')
