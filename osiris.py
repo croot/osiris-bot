@@ -4,16 +4,7 @@
 import os, sys, time
 pid_file = 'osiris.pid'
 
-def readfile(filename):
-	fp = file(filename)
-	data = fp.read()
-	fp.close()
-	return data
-
-def writefile(filename, data):
-	fp = file(filename, 'w')
-	fp.write(data)
-	fp.close()
+def writefile(filename, data): file(filename, 'w').write(data)
 
 def tZ(val):
 	val = str(val)
@@ -23,11 +14,9 @@ def tZ(val):
 def printlog(text):
 	print text
 	lt = tuple(time.localtime())
-	fname = 'log/crash_'+tZ(lt[0])+tZ(lt[1])+tZ(lt[2])+'.txt'
-	fbody = tZ(lt[3])+tZ(lt[4])+tZ(lt[5])+'|'+text+'\n'
-	fl = open(fname, 'a')
-	fl.write(fbody.encode('utf-8'))
-	fl.close()
+	fname = 'log/crash_%s%s%s.txt' % (tZ(lt[0]),tZ(lt[1]),tZ(lt[2]))
+	fbody = '%s%s%s|%s\n' % (tZ(lt[3]),tZ(lt[4]),tZ(lt[5]),text)
+	open(fname, 'a').write(fbody.encode('utf-8'))
 
 def crash(text):
 	printlog(text)
@@ -40,8 +29,8 @@ except:
 	printlog('\n'+'*'*50+'\n Osiris is crashed! Incorrent launch!\n'+'*'*50+'\n')
 	raise
 
-'''if os.path.isfile(pid_file):
-	try: last_pid = int(readfile(pid_file))
+if os.path.isfile(pid_file):
+	try: last_pid = int(file(pid_file).read())
 	except: crash('Unable get information from %s' % pid_file)
 	try:
 		os.getsid(last_pid)
@@ -50,7 +39,7 @@ except:
 		if not str(SM).lower().count('no such process'): crash('Unknown exception!\n%s' % SM)
 	
 writefile(pid_file,str(os.getpid()))
-'''
+
 os.system('echo `svnversion` > version')
 
 while 1:
