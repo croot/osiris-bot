@@ -430,16 +430,9 @@ def sender(item,ident):
 	sleep(0.1)
 	send_count(item,ident)
 
-def readfile(filename):
-	fp = file(filename)
-	data = fp.read()
-	fp.close()
-	return data
+def readfile(filename): return file(filename).read()
 
-def writefile(filename, data):
-	fp = file(filename, 'w')
-	fp.write(data)
-	fp.close()
+def writefile(filename, data): file(filename, 'w').write(data)
 
 def getFile(filename,default):
 	if os.path.isfile(filename):
