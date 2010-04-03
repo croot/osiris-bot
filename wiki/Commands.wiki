@@ -1,0 +1,44 @@
+#summary Bot commands
+#labels Featured
+
+= Bot owner commands =
+
+These commands are available for owner from any bot's jid:
+
+<li>{{{sh <command> - execute shell command}}}
+<li>{{{exec <command> - execute python code}}}
+<li>{{{update - update bot from svn repository}}}
+<li>{{{exit - shutdown bot}}}
+<li>{{{restart - restart bot}}}
+<li>{{{stats - show some statistic}}}
+<li>{{{help - about me}}}
+
+= Translate jid's =
+
+No specific commands.
+
+= Feeds jid =
+
+<li>{{{show - show feeds for current jid}}}
+<li>{{{clear - remove all feeds}}}
+<li>{{{add url time mode - add feed where:}}}
+{{{
+url - url of feed with or without "http://"
+time - time between feed check. f.e: 20m or 2h
+mode - one of three modes:
+ - head - only feed title
+ - body - obly fedd body
+ - full - title and body
+allowed two keys:
+-url - show url of feed
+-headline - send message as headline
+f.e: add bash.org.ru/rss 1h full-url-headline
+}}}
+<li>{{{del url - remove feed}}}
+<li>{{{get url number_of_feeds mode - get feeds}}}
+sintax like in "add" command
+<li>{{{new url number_of_feeds mode - get only new feeds}}}
+sintax like in "add" command
+
+
+<hr><p align="center"><i><font size=1 color="#0000aa">(c) 2oo9-2o1o Disabler Production Lab</font><font size=1 color="#ff0000">A</font><font size=1 color="#0000aa">ratory</font></i></p><hr>
