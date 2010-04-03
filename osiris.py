@@ -34,7 +34,7 @@ if os.path.isfile(pid_file):
 	except: crash('Unable get information from %s' % pid_file)
 	try:
 		os.getsid(last_pid)
-		crash('Multilaunch detected! Pid %s is killed!' % last_pid)
+		printlog('Multilaunch detected! Pid %s is killed!' % last_pid)
 		os.kill(int(last_pid),3)
 		time.sleep(1)
 		try: os.kill(int(last_pid),9)
@@ -53,7 +53,7 @@ while 1:
 		mode = str(mode)
 		if mode == 'update':
 			os.system('svn up')
-			os.system('echo `svnversion` > settings/version')
+			os.system('echo `svnversion` > version')
 		elif mode == 'exit': break
 		elif mode == 'restart': pass
 		else:
