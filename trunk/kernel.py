@@ -3,7 +3,7 @@
 # --------------------------------------------------------------------
 #
 #                             Osiris Jabber Bot
-#                               version 0.01
+#                               version 0.02
 #
 # --------------------------------------------------------------------
 #                  (c) 2oo9-2o1o Disabler Production Lab.
@@ -513,6 +513,7 @@ def iqCB(sess,iq):
 
 	if iq.getType()=='get':
 		to = unicode(iq.getTo().getStripped())
+		if getRoom(to) in Ignore: return None
 		if iq.getTag(name='query', namespace=xmpp.NS_VERSION):
 			pprint('*** iq:version from '+unicode(nick))
 			i=xmpp.Iq(to=nick, typ='result')
@@ -566,6 +567,7 @@ def messageCB(sess,mess):
 	message_in += 1
 	type=unicode(mess.getType())
 	jid=unicode(mess.getFrom().getStripped()).lower()
+	if getRoom(jid) in Ignore: return
 	text=unicode(mess.getBody())
 	if text == 'None' or text == '': return
 	if mess.getTimestamp() != None: return
@@ -580,17 +582,82 @@ def messageCB(sess,mess):
 			break
 	if not whoami: return
 	if text: text = text[:limit]
-	pprint('ID %s | Command %s | From %s' % (whoami,text,jid))
-	if whoami[0] == 'rss': text = rss(text,jid,type,to)
-	elif whoami[0] == 'translate': text = translate(whoami[1],whoami[2],text)
-	else: text == 'Not configured now!'
+	pprint('ID%s|%s|%s' % (whoami,text,jid))
+	skip = None
+	if getRoom(jid) in Owner:
+		for tmp in OwnerCommands:
+			if text.split(' ',1)[0].lower() == tmp[0]:
+				skip = True
+				try: param = text.split(' ',1)[1]
+				except: param = ''
+				pprint('Owner:%s|%s' % (jid,text))
+				if tmp[2]:
+					if len(param): text = tmp[1](param)
+					else: text = 'What?'
+				else: text = tmp[1]()
+	if not skip:
+		if whoami[0] == 'rss': text = rss(text,jid,type,to)
+		elif whoami[0] == 'translate': text = translate(whoami[1],whoami[2],text)
+		else: text == 'Not configured now!'
 	if text: sender(xmpp.Message(jid, text[:limit], type),getRoom(to))
 
+def bot_update():
+	global game_over, bot_exit_type
+	game_over, bot_exit_type = True, 'update'
+	return 'Update!'
+
+def bot_exit():
+	global game_over, bot_exit_type
+	game_over, bot_exit_type = True, 'exit'
+	return 'Quit!'
+
+def bot_restart():
+	global game_over, bot_exit_type
+	game_over, bot_exit_type = True, 'restart'
+	return 'Restart!'
+
+def bot_sh(cmd):
+	tmp_file = 'tmp'
+	try: os.remove(tmp_file)
+	except: pass
+	try:
+		os.system(cmd+' >> '+tmp_file)
+		try: body = readfile(tmp_file)
+		except: body = L('Command execution error.')
+		if len(body):
+			enc = chardet.detect(body)['encoding']
+			return unicode(body,enc)
+		else: return L('ok')
+	except Exception, SM: return L('I can\'t execute it! Error: %s') % str(SM)
+
+def bot_exec(text):
+	try: text = unicode(eval(text))
+	except Exception, SM: text = L('I can\'t execute it! Error: %s') % unicode(SM)[:msg_limit/2]
+	return text
+
+def bot_stats():
+	msg  = 'Executed threads: %s | Error(s): %s\n' % (th_cnt,thread_error_count)
+	msg += 'Message in %s | out %s\n' % (message_in,message_out)
+	msg += 'Presence in %s | out %s\n' % (presence_in,presence_out)
+	msg += 'Iq in %s | out %s\n' % (iq_in,iq_out)
+	return msg
+
+def bot_help(): return u'... oSiris Jabber Bot ...\n© 2oo9-2o1o Disabler Production Lab.\nhttp://isida-bot.com/osiris\nSend donation to:\nYandexMoney: 41001384336826\nWMZ: Z392970180590\nWMR: R378494692310\nWME: E164241657651\nBest regards Disabler'
+
+OwnerCommands = [('update',bot_update,None),
+				 ('quit',bot_exit,None),
+				 ('restart',bot_restart,None),
+				 ('sh',bot_sh,True),
+				 ('exec',bot_exec,True),
+				 ('stats',bot_stats,None),
+				 ('help',bot_help,None)]
+	
 def presenceCB(sess,mess):
 	global presence_in
 	presence_in += 1
 	type=unicode(mess.getType())
 	jid=getRoom(unicode(mess.getFrom().getStripped())).lower()
+	if jid in Ignore: return
 	to=getRoom(unicode(mess.getTo()))
 	if jid == to: return
 
@@ -729,7 +796,7 @@ dm = None								# отладка xmpppy
 dm2 = None								# отладка действий бота
 CommandsLog = None						# логгирование команд
 botName = 'Osiris-Bot'					# название бота
-botVersion = 'v0.01'					# версия бота
+botVersion = 'v0.02'					# версия бота
 capsVersion = botVersion[1:]			# версия для капса
 capsNode = 'Osiris-Bot'					# капс бота
 th_cnt = 0								# счётчик тредов
