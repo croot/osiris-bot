@@ -177,8 +177,9 @@ def rss(text,jid,type,to):
 	elif mode == 'show':
 		feedbase = getFile(feeds,[])
 		if feedbase != []:
-			msg = ''
-			for rs in feedbase:
+			msg,tmp = '',feedbase
+			tmp.sort()
+			for rs in tmp:
 				if rs[4] == jid:
 					msg += u'\n'+rs[0]+u' ('+rs[1]+u') '+rs[2]
 					try: msg += u' - '+time.ctime(rs[3])
@@ -204,7 +205,7 @@ def rss(text,jid,type,to):
 		else: timetype = text[2]
 		feedbase.append([link, timetype, text[3], int(time.time()), getRoom(jid)]) # url time mode
 		writefile(feeds,str(feedbase))
-		msg = L('Add feed to schedule: %s (%s) %s') % (link,timetype,text[3])
+		msg = L('Added: %s (%s) %s') % (link,timetype,text[3])
 		sender(xmpp.Message(jid, msg, type),getRoom(to))
 		return rss('get %s 1 %s' % (link,text[3]),jid,type,to)
 	elif mode == 'del':
@@ -233,8 +234,9 @@ def rss(text,jid,type,to):
 		elif feed[:256].count('http://www.w3.org/2005/Atom') and feed[:256].count('xml'): is_rss_aton = 2
 		feed = html_encode(feed)
 		if is_rss_aton and feed != L('Encoding error!'):
-			if feed.count('<items>'): feed = get_tag(feed,'<items>')
-			if is_rss_aton == 1: feed = feed.split('<item')
+			if is_rss_aton == 1:
+				if feed.count('<item>'): feed = feed.split('<item>')
+				else: feed = feed.split('<item ')
 			else: feed = feed.split('<entry>')
 			if len(text) > 2: lng = int(text[2])+1
 			else: lng = len(feed)
