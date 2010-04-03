@@ -34,7 +34,11 @@ if os.path.isfile(pid_file):
 	except: crash('Unable get information from %s' % pid_file)
 	try:
 		os.getsid(last_pid)
-		crash('Multilaunch detected! Kill pid %s before launch bot again!' % last_pid)
+		crash('Multilaunch detected! Pid %s is killed!' % last_pid)
+		os.kill(int(last_pid),3)
+		time.sleep(1)
+		try: os.kill(int(last_pid),9)
+		except: pass
 	except Exception, SM:
 		if not str(SM).lower().count('no such process'): crash('Unknown exception!\n%s' % SM)
 	
@@ -45,6 +49,16 @@ os.system('echo `svnversion` > version')
 while 1:
 	try: execfile('kernel.py')
 	except KeyboardInterrupt: break
+	except SystemExit, mode:
+		mode = str(mode)
+		if mode == 'update':
+			os.system('svn up')
+			os.system('echo `svnversion` > settings/version')
+		elif mode == 'exit': break
+		elif mode == 'restart': pass
+		else:
+			printlog('unknown exit type!')
+			break
 	except Exception, SM:
 		printlog('\n'+'*'*50+'\n Osiris is crashed! It\'s imposible, but You do it!\n'+'*'*50+'\n')
 		printlog(str(SM)+'\n')

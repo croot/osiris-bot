@@ -33,6 +33,8 @@ RUENsettings = {
 'msglimit'	: 512}
 
 Settings = [RSSsettings,ENRUsettings,RUENsettings]
+Owner = ['jid1@server.tld','jid2@server.tld','jid3@server.tld']
+Ignore = []
 
 #debugmode = True
 #dm = True
