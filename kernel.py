@@ -596,7 +596,8 @@ def messageCB(sess,mess):
 					else: text = 'What?'
 				else: text = tmp[1]()
 	if not skip:
-		if whoami[0] == 'rss': text = rss(text,jid,type,to)
+		if text.lower() == 'help': text = u'... oSiris Jabber Bot ...\n© 2oo9-2o1o Disabler Production Lab.\nhttp://isida-bot.com/osiris\nSend donation to:\nYandexMoney: 41001384336826\nWMZ: Z392970180590\nWMR: R378494692310\nWME: E164241657651\nBest regards Disabler'
+		elif whoami[0] == 'rss': text = rss(text,jid,type,to)
 		elif whoami[0] == 'translate': text = translate(whoami[1],whoami[2],text)
 		else: text == 'Not configured now!'
 	if text: sender(xmpp.Message(jid, text[:limit], type),getRoom(to))
@@ -642,15 +643,12 @@ def bot_stats():
 	msg += 'Iq in %s | out %s\n' % (iq_in,iq_out)
 	return msg
 
-def bot_help(): return u'... oSiris Jabber Bot ...\n© 2oo9-2o1o Disabler Production Lab.\nhttp://isida-bot.com/osiris\nSend donation to:\nYandexMoney: 41001384336826\nWMZ: Z392970180590\nWMR: R378494692310\nWME: E164241657651\nBest regards Disabler'
-
 OwnerCommands = [('update',bot_update,None),
 				 ('quit',bot_exit,None),
 				 ('restart',bot_restart,None),
 				 ('sh',bot_sh,True),
 				 ('exec',bot_exec,True),
-				 ('stats',bot_stats,None),
-				 ('help',bot_help,None)]
+				 ('stats',bot_stats,None)]
 	
 def presenceCB(sess,mess):
 	global presence_in
