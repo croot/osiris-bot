@@ -651,7 +651,7 @@ OwnerCommands = [('update',bot_update,None),
 				 ('stats',bot_stats,None)]
 	
 def presenceCB(sess,mess):
-	global presence_in
+	global presence_in, online
 	presence_in += 1
 	type=unicode(mess.getType())
 	jid=getRoom(unicode(mess.getFrom().getStripped())).lower()
@@ -697,6 +697,8 @@ def presenceCB(sess,mess):
 		j.setTag('c', namespace=NS_CAPS, attrs={'node':capsNode,'ver':capsVersion})
 		sender(j,to)
 		pprint('Send status for %s from %s' % (jid,getName(to)))
+	if type == 'unavailable': online.remove(jid)
+	elif not jid in online: online.append(jid)
 
 def getName(jid):
 	jid = unicode(jid).lower()
@@ -744,7 +746,7 @@ def check_rss():
 		elif timetype == 'm': ofset *= 60
 		try: ll_hl = int(fd[3])
 		except: ll_hl = 0
-		if ll_hl + ofset <= l_hl:
+		if ll_hl + ofset <= l_hl and (fd[4] in online or not 'headline' in fd[2].split('-')):
 			pprint('check rss: '+fd[0]+' for '+fd[4])
 			text = rss('new '+fd[0]+' 20 '+fd[2]+' silent',fd[4],'chat',to)
 			if text: sender(xmpp.Message(fd[4], text[:limit], 'chat'),to)
@@ -809,8 +811,7 @@ iq_in = 0
 iq_out = 0
 presence_in = 0
 presence_out = 0
-
-NS_STATS = 'http://jabber.org/protocol/stats'
+online = []
 
 gt=gmtime()
 lt=tuple(localtime())
