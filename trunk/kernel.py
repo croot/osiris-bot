@@ -850,17 +850,17 @@ for st in Settings:
 	pprint('>>> bot jid: %s' % st['jid'])
 	jr = getRoom(jid).lower()
 	
-#	try:
-	if dm: cl[jr] = Client(jid.getDomain())
-	else: cl[jr] = Client(jid.getDomain(), debug=[])
-	cl[jr].connect()
-	pprint('> Connected')
-	cl[jr].auth(jid.getNode(), st['password'], jid.getResource())
-	pprint('> Autheticated')
-#	except:
-#		pprint('Auth error or no connection. Restart in '+str(reboot_time)+' sec.')
-#		sleep(reboot_time)
-#		sys.exit('restart')
+	try:
+		if dm: cl[jr] = Client(jid.getDomain())
+		else: cl[jr] = Client(jid.getDomain(), debug=[])
+		cl[jr].connect()
+		pprint('> Connected')
+		cl[jr].auth(jid.getNode(), st['password'], jid.getResource())
+		pprint('> Autheticated')
+	except:
+		pprint('Auth error or no connection. Restart in '+str(reboot_time)+' sec.')
+		sleep(reboot_time)
+		sys.exit('restart')
 	pprint('> Registration Handlers')
 	cl[jr].RegisterHandler('message',messageCB)
 	cl[jr].RegisterHandler('iq',iqCB)
