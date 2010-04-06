@@ -75,6 +75,13 @@ def replacer(msg):
 	msg = rss_del_nn(msg)
 	return msg
 
+def replacer2(msg):
+	msg = rss_del_html(msg)
+	msg = rss_replace(msg)
+	msg = unescape(msg)
+	msg = rss_del_nn(msg)
+	return msg
+
 def unescape(text):
 	def fixup(m):
 		text = m.group(0)
@@ -288,9 +295,9 @@ def rss(text,jid,type,to):
 				else: type = 'chat'
 				t_msg.reverse()
 				for tmp in t_msg:
-					tmsg = replacer(tmp[0])
+					tmsg = replacer2(tmp[0])
 					if len(tmp[2]): tmsg += '\n\n'+tmp[2]
-					sender(xmpp.Message(to=jid, body=tmsg, typ=type, subject=replacer(tmp[1])),getRoom(to))
+					sender(xmpp.Message(to=jid, body=tmsg, typ=type, subject=replacer2(tmp[1])),getRoom(to))
 				return None
 			except:
 				if text[4] == 'silent': return None
