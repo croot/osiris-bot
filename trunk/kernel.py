@@ -75,11 +75,6 @@ def replacer(msg):
 	msg = rss_del_nn(msg)
 	return msg
 
-def replacer2(msg):
-	msg = rss_replace(msg)
-	msg = rss_del_nn(msg)
-	return msg
-
 def unescape(text):
 	def fixup(m):
 		text = m.group(0)
@@ -103,7 +98,7 @@ def rss_repl_html(ms):
 	i=0
 	lms = len(ms)
 	while i < lms:
-		if ms[i] == '<':
+		if ms[i] == '<' and ms[i:].count('>'):
 			for j in range(i, lms):
 				if ms[j] == '>': break
 			ms = ms[:i] +' '+ ms[j+1:]
@@ -116,7 +111,7 @@ def rss_del_html(ms):
 	i=0
 	lms = len(ms)
 	while i < lms:
-		if ms[i] == '<':
+		if ms[i] == '<' and ms[i:].count('>'):
 			for j in range(i, lms):
 				if ms[j] == '>': break
 			ms = ms[:i] + ms[j+1:]
@@ -292,8 +287,6 @@ def rss(text,jid,type,to):
 				if headline: type = 'headline'
 				else: type = 'chat'
 				t_msg.reverse()
-				if is_rss_aton == 1: func = replacer2
-				else: func = replacer
 				for tmp in t_msg:
 					tmsg = func(tmp[0])
 					if len(tmp[2]): tmsg += '\n\n'+tmp[2]
