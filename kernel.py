@@ -77,7 +77,6 @@ def replacer(msg):
 
 def replacer2(msg):
 	msg = rss_replace(msg)
-	msg = rss_del_html(msg)
 	msg = rss_del_nn(msg)
 	return msg
 
@@ -293,10 +292,12 @@ def rss(text,jid,type,to):
 				if headline: type = 'headline'
 				else: type = 'chat'
 				t_msg.reverse()
+				if is_rss_aton == 1: func = replacer2
+				else: func = replacer
 				for tmp in t_msg:
-					tmsg = replacer2(tmp[0])
+					tmsg = func(tmp[0])
 					if len(tmp[2]): tmsg += '\n\n'+tmp[2]
-					sender(xmpp.Message(to=jid, body=tmsg, typ=type, subject=replacer2(tmp[1])),getRoom(to))
+					sender(xmpp.Message(to=jid, body=tmsg, typ=type, subject=func(tmp[1])),getRoom(to))
 				return None
 			except:
 				if text[4] == 'silent': return None
