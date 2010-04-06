@@ -76,8 +76,8 @@ def replacer(msg):
 	return msg
 
 def replacer2(msg):
-	msg = rss_del_html(msg)
 	msg = rss_replace(msg)
+	msg = rss_del_html(msg)
 	msg = rss_del_nn(msg)
 	return msg
 
