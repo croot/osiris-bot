@@ -697,7 +697,7 @@ def presenceCB(sess,mess):
 		j.setTag('c', namespace=NS_CAPS, attrs={'node':capsNode,'ver':capsVersion})
 		sender(j,to)
 		pprint('Send status for %s from %s' % (jid,getName(to)))
-	if type == 'unavailable': online.remove(jid)
+	if type == 'unavailable' and jid in online: online.remove(jid)
 	elif not jid in online: online.append(jid)
 
 def getName(jid):
