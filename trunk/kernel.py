@@ -147,8 +147,27 @@ def html_encode(body):
 		else: enc = chardet.detect(body)['encoding']
 	if body == None: body = ''
 	if enc == None or enc == '' or enc.lower() == 'unicode': enc = 'utf-8'
-	try: return smart_encode(body,enc)
-	except: return L('Encoding error!')
+	if enc == 'ISO-8859-2':
+		tx,splitter = '','|'
+		while body.count(splitter): splitter += '|'
+		tbody = body.replace('</','<'+splitter+'/').split(splitter)
+		cntr = 0
+		for tmp in tbody:
+			try:
+				enc = chardet.detect(tmp)['encoding']
+				if enc == None or enc == '' or enc.lower() == 'unicode': enc = 'utf-8'
+				tx += unicode(tmp,enc)
+			except:
+				ttext = ''
+				for tmp2 in tmp:
+					if (tmp2<='~'): ttext+=tmp2
+					else: ttext+='?'
+				tx += ttext
+			cntr += 1
+		return tx
+	else:
+		try: return smart_encode(body,enc)
+		except: return L('Encoding error!')
 
 def rss(text,jid,type,to):
 	global feedbase, feeds,	lastfeeds, lafeeds
@@ -402,14 +421,10 @@ def get_tag_item(body,tag,item):
 	return get_subtag(body,item)
 	
 def parser(text):
-	text = unicode(text)
-	ttext = ''
-	i = 0
-	while i<len(text):
-		if (text[i]<='~'): ttext+=text[i]
+	text,ttext = unicode(text),''
+	for tmp in text:
+		if (tmp<='~'): ttext+=tmp
 		else: ttext+='?'
-		i=i+1
-	ttext = unicode(ttext)
 	return ttext
 
 def remove_sub_space(text):
@@ -422,7 +437,7 @@ def remove_sub_space(text):
 def smart_encode(text,enc):
 	tx,splitter = '','|'
 	while text.count(splitter): splitter += '|'
-	ttext = text.replace('><','>'+splitter+'<').split(splitter)
+	ttext = text.replace('</','<'+splitter+'/').split(splitter)
 	for tmp in ttext:
 		try: tx += unicode(tmp,enc)
 		except: pass
