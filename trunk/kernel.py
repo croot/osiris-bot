@@ -15,6 +15,7 @@ from random import *
 from time import *
 
 import chardet
+import hashlib
 import htmlentitydefs
 import logging
 import os
