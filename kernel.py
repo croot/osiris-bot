@@ -266,14 +266,11 @@ def rss(text,jid,type,to):
 			headline,urlmode = 'headline' in submode.split('-'),'url' in submode.split('-')
 			submode = submode.split('-')[0]
 			try:
-				mmsg,tstop = feed[1],''
-				if is_rss_aton==1: mmsg = get_tag(mmsg,'title')
-				else: mmsg = get_tag(mmsg,'title')
+				mmsg,tstop = hashlib.md5(get_tag(feed[1],'title').replace('&lt;br&gt;','\n').encode('utf-8')).hexdigest(),''
 				for dd in lastfeeds:
 					try:
 						if dd[0] == link and dd[2] == jid:
 							tstop = dd[1]
-							tstop = tstop[:-1]
 							lastfeeds.remove(dd)
 							break
 					except: lastfeeds.remove(dd)
@@ -281,18 +278,17 @@ def rss(text,jid,type,to):
 				writefile(lafeeds,str(lastfeeds))
 				t_msg = []
 				for mmsg in feed[1:lng]:
+					ttitle = get_tag(mmsg,'title').replace('&lt;br&gt;','\n')
+					if mode == 'new' and hashlib.md5(ttitle.encode('utf-8')).hexdigest() == tstop: break
 					if is_rss_aton == 1:
-						ttitle = get_tag(mmsg,'title')
-						tbody = get_tag(mmsg,'description')
+						tbody = get_tag(mmsg,'description').replace('&lt;br&gt;','\n')
 						turl = get_tag(mmsg,'link')
 					else:
 						tbody = get_tag(mmsg,'content').replace('&lt;br&gt;','\n')
-						ttitle = get_tag(mmsg,'title').replace('&lt;br&gt;','\n')
 						tu1 = mmsg.index('<link')
 						tu2 = mmsg.find('href=\"',tu1)+6
 						tu3 = mmsg.find('\"',tu2)
 						turl = mmsg[tu2:tu3].replace('&lt;br&gt;','\n')
-					if mode == 'new' and ttitle == tstop: break
 					tmsg, tsubj, tmurl = '','',''
 					if submode == 'full': tmsg,tsubj = tbody,ttitle
 					elif submode == 'body': tmsg = tbody
