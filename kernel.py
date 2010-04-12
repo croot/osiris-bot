@@ -286,8 +286,8 @@ def rss(text,jid,type,to):
 						tbody = get_tag(mmsg,'description')
 						turl = get_tag(mmsg,'link')
 					else:
-						ttitle = get_tag(mmsg,'content').replace('&lt;br&gt;','\n')
-						tbody = get_tag(mmsg,'title').replace('&lt;br&gt;','\n')
+						tbody = get_tag(mmsg,'content').replace('&lt;br&gt;','\n')
+						ttitle = get_tag(mmsg,'title').replace('&lt;br&gt;','\n')
 						tu1 = mmsg.index('<link')
 						tu2 = mmsg.find('href=\"',tu1)+6
 						tu3 = mmsg.find('\"',tu2)
