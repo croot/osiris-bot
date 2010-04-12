@@ -267,8 +267,8 @@ def rss(text,jid,type,to):
 			submode = submode.split('-')[0]
 			try:
 				mmsg,tstop = feed[1],''
-				if is_rss_aton==1: mmsg = get_tag(mmsg,'title') + '\n'
-				else: mmsg = get_tag(mmsg,'content').replace('&lt;br&gt;','\n') + '\n'
+				if is_rss_aton==1: mmsg = get_tag(mmsg,'title')
+				else: mmsg = get_tag(mmsg,'title')
 				for dd in lastfeeds:
 					try:
 						if dd[0] == link and dd[2] == jid:
