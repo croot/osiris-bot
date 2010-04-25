@@ -249,9 +249,9 @@ def rss(text,jid,type,to):
 		try: feed = urllib.urlopen(link).read()
 		except: return None
 		is_rss_aton = 0
-		if feed[:256].count('rss') and feed[:256].count('xml'): is_rss_aton = 1
+		if feed[:256].count('http://www.w3.org/2005/Atom') and feed[:256].count('xml'): is_rss_aton = 2
+		elif feed[:256].count('rss') and feed[:256].count('xml'): is_rss_aton = 1
 		elif feed[:256].count('rss') and feed[:256].count('version=\"2.0\"'): is_rss_aton = 1
-		elif feed[:256].count('http://www.w3.org/2005/Atom') and feed[:256].count('xml'): is_rss_aton = 2
 		feed = html_encode(feed)
 		if is_rss_aton and feed != L('Encoding error!'):
 			if is_rss_aton == 1:
