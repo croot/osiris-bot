@@ -195,12 +195,16 @@ def rss(text,jid,type,to):
 		writefile(lafeeds,str(lastfeeds))
 		return L('All RSS was cleared!')
 	elif mode == 'show':
+		try: tx = text[1]
+		except: tx = None
+		if getRoom(jid) in Owner and tx: sel_jid = tx
+		else: sel_jid = jid
 		feedbase = getFile(feeds,[])
 		if feedbase != []:
 			msg,tmp = '',feedbase
 			tmp.sort()
 			for rs in tmp:
-				if rs[4] == jid:
+				if sel_jid == 'all' or rs[4] == sel_jid:
 					msg += u'\n'+rs[0]+u' ('+rs[1]+u') '+rs[2]
 					try: msg += u' - '+time.ctime(rs[3])
 					except: msg += u' - Unknown'
