@@ -208,9 +208,9 @@ def rss(text,jid,type,to):
 					try: rtime = time.ctime(rs[3])
 					except: rtime = 'Unknown'
 					if sel_jid == jid: msg += '\n%s (%s) %s - %s' % (rs[0],rs[1],rs[2],rtime)
-					else: msg += '\n%s\t%s\t%s (%s) %s' % (rtime,rs[4],rs[0],rs[1],rs[2])
-			if len(msg): return L('Schedule feeds for %s:%s') % (jid,msg)
-			else: return L('Schedule feeds for %s not found!') % jid
+					else: msg += '\n%s \t%s \t%s (%s) %s' % (rtime,rs[4],rs[0],rs[1],rs[2])
+			if len(msg): return L('Schedule feeds for %s:%s') % (sel_jid,msg)
+			else: return L('Schedule feeds for %s not found!') % sel_jid
 		return L('No RSS found!')
 	elif mode == 'add':
 		mdd = ['full','body','head']
