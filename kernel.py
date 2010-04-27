@@ -248,9 +248,10 @@ def rss(text,jid,type,to):
 		if not link[:10].count('://'): link = 'http://'+link
 		try: feed = urllib.urlopen(link).read()
 		except: return None
-		is_rss_aton = 0
-		if feed[:256].count('<?xml version=') and feed[:256].count('<feed'): is_rss_aton = 2
-		elif feed[:256].count('<?xml version=') and feed[:256].count('<rss'): is_rss_aton = 1
+		is_rss_aton,fc = 0,feed[:256]
+		if fc.count('<?xml version='):
+			if fc.count('<feed'): is_rss_aton = 2
+			elif fc.count('<rss') or fc.count('<rdf'): is_rss_aton = 1
 		feed = html_encode(feed)
 		if is_rss_aton and feed != L('Encoding error!'):
 			if is_rss_aton == 1:
