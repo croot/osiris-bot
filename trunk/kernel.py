@@ -312,8 +312,9 @@ def rss(text,jid,type,to):
 				t_msg.reverse()
 				for tmp in t_msg:
 					tmsg = replacer(tmp[0])
-					if len(tmp[2]): tmsg += '\n\n'+tmp[2]
-					sender(xmpp.Message(to=jid, body=tmsg, typ=type, subject=replacer(tmp[1])),getRoom(to))
+					if tmp[2]: i = xmpp.Message(to=jid, body=tmsg, typ=type, subject=replacer(tmp[1]),payload = [Node('x', {'xmlns': NS_X_OOB},[Node('url',{},tmp[2]),Node('desc',{},get_tag(feed[0],'title'))])])
+					else: i = xmpp.Message(to=jid, body=tmsg, typ=type, subject=replacer(tmp[1]))
+					sender(i,getRoom(to))
 				return None
 			except:
 				if text[4] == 'silent': return None

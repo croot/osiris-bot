@@ -133,6 +133,7 @@ NS_VERSION          ='jabber:iq:version'                                    # XE
 NS_WAITINGLIST      ='http://jabber.org/protocol/waitinglist'               # XEP-0130
 NS_XHTML_IM         ='http://jabber.org/protocol/xhtml-im'                  # XEP-0071
 NS_XMPP_STREAMS     ='urn:ietf:params:xml:ns:xmpp-streams'                  # RFC 3920
+NS_X_OOB			='jabber:x:oob'											# XEP-0066
 
 xmpp_stream_error_conditions="""
 bad-format --  --  -- The entity has sent XML that cannot be processed.
