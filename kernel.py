@@ -95,31 +95,35 @@ def rss_replace(ms):
 	for tmp in rmass: ms = ms.replace(tmp[1],tmp[0])
 	return unescape(ms)
 
-def rss_repl_html(ms):
-	i=0
-	lms = len(ms)
-	while i < lms:
-		if ms[i] == '<' and ms[i:].count('>'):
-			for j in range(i, lms):
-				if ms[j] == '>': break
-			ms = ms[:i] +' '+ ms[j+1:]
-			lms = len(ms)
-			i -= 1
-		i += 1
+def rss_repl_del_html(ms,item):
+	DS,SP,T = '<%s>','/%s',re.findall('<(.*?)>', ms, re.S)
+	if len(T):
+		for tmp in T:
+			if tmp[-1:] == '/':
+				pattern = DS % tmp
+				pos = ms.find(pattern)
+				ms = ms[:pos] + item + ms[pos+len(pattern):]
+	T = re.findall('<(.*?)>', ms, re.S)
+	if len(T):
+		for tmp in range(0,len(T)-1):
+			pos = None
+			TT = T[tmp].split(' ')[0]
+			if TT[0] != '/':
+				try: pos = T.index(SP % TT,tmp)
+				except: pass
+				if pos:
+					pat1,pat2 = DS % T[tmp],DS % T[pos]
+					pos1 = ms.find(pat1)
+					pos2 = ms.find(pat2,pos1)
+					ms = ms[:pos1] + item + ms[pos1+len(pat1):pos2] + item + ms[pos2+len(pat2):]
+	for tmp in ('hr','br','li','ul','img','dt','dd'):
+		T = re.findall('<%s.*?>' % tmp, ms, re.S)
+		for tmp1 in T: ms = ms.replace(tmp1,item,1)
 	return ms
 
-def rss_del_html(ms):
-	i=0
-	lms = len(ms)
-	while i < lms:
-		if ms[i] == '<' and ms[i:].count('>'):
-			for j in range(i, lms):
-				if ms[j] == '>': break
-			ms = ms[:i] + ms[j+1:]
-			lms = len(ms)
-			i -= 1
-		i += 1
-	return ms
+def rss_repl_html(ms): return rss_repl_del_html(ms,' ')
+
+def rss_del_html(ms): return rss_repl_del_html(ms,'')
 
 def rss_del_nn(ms):
 	ms = ms.replace('\r',' ').replace('\t',' ')
@@ -171,7 +175,7 @@ def html_encode(body):
 		except: return L('Encoding error!')
 
 def rss(text,jid,type,to):
-	global feedbase, feeds,	lastfeeds, lafeeds
+	global feedbase, feeds
 	text = text.split(' ')
 	tl = len(text)
 	if tl < 5: text.append('!')
@@ -180,7 +184,6 @@ def rss(text,jid,type,to):
 	elif mode == 'del' and tl < 2: return 'del url'
 	elif mode == 'new' and tl < 4: return 'new url max_feed_humber full|body|head[-url][-headline]'
 	elif mode == 'get' and tl < 4: return 'get url max_feed_humber full|body|head[-url][-headline]'
-	lastfeeds = getFile(lafeeds,[])
 	if mode == 'clear':
 		feedbase = getFile(feeds,[])
 		tf = []
@@ -188,11 +191,6 @@ def rss(text,jid,type,to):
 			if taa[4] != jid: tf.append(taa)
 		feedbase = tf
 		writefile(feeds,str(feedbase))
-		tf = []
-		for taa in lastfeeds:
-			if taa[2] == jid: tf.append(taa)
-		lastfeeds = tf
-		writefile(lafeeds,str(lastfeeds))
 		return L('All RSS was cleared!')
 	elif mode == 'show':
 		if text[1] and text[1] != '!': tx = text[1]
@@ -228,7 +226,7 @@ def rss(text,jid,type,to):
 		except: ofset = 4
 		if timetype == 'm' and ofset < 10: timetype = '10m'
 		else: timetype = text[2]
-		feedbase.append([link, timetype, text[3], int(time.time()), getRoom(jid)]) # url time mode
+		feedbase.append([link, timetype, text[3], int(time.time()), getRoom(jid),[]]) # url time mode
 		writefile(feeds,str(feedbase))
 		msg = L('Added: %s (%s) %s') % (link,timetype,text[3])
 		sender(xmpp.Message(jid, msg, type),getRoom(to))
@@ -242,11 +240,6 @@ def rss(text,jid,type,to):
 			if rs[0] == link and rs[4] == jid:
 				feedbase.remove(rs)
 				writefile(feeds,str(feedbase))
-				for rs in lastfeeds:
-					if rs[0] == link and rs[2] == jid:
-						lastfeeds.remove(rs)
-						writefile(lafeeds,str(lastfeeds))
-						break
 				return L('Delete feed from schedule: %s') % link
 	elif mode == 'new' or mode == 'get':
 		link = text[1]
@@ -274,37 +267,40 @@ def rss(text,jid,type,to):
 			headline,urlmode = 'headline' in submode.split('-'),'url' in submode.split('-')
 			submode = submode.split('-')[0]
 			try:
-				mmsg,tstop = hashlib.md5(get_tag(feed[1],'title').replace('&lt;br&gt;','\n').encode('utf-8')).hexdigest(),''
-				for dd in lastfeeds:
-					try:
-						if dd[0] == link and dd[2] == jid:
-							tstop = dd[1]
-							lastfeeds.remove(dd)
+				break_point,tstop = [],[]
+				for tmp in feed[1:]: break_point.append(hashlib.md5(tmp.encode('utf-8')).hexdigest())
+				feedbase = getFile(feeds,[])
+				for tmp in feedbase:
+					if tmp[4] == jid and tmp[0] == link:
+							try: tstop = tmp[5]
+							except: pass
+							feedbase.remove(tmp)
+							feedbase.append([tmp[0], tmp[1], tmp[2], int(time.time()), tmp[4], break_point])
+							writefile(feeds,str(feedbase))
 							break
-					except: lastfeeds.remove(dd)
-				lastfeeds.append([link,mmsg,jid])
-				writefile(lafeeds,str(lastfeeds))
 				t_msg = []
 				for mmsg in feed[1:lng]:
 					ttitle = get_tag(mmsg,'title').replace('&lt;br&gt;','\n')
-					if mode == 'new' and hashlib.md5(ttitle.encode('utf-8')).hexdigest() == tstop: break
-					if is_rss_aton == 1:
-						tbody = get_tag(mmsg,'description').replace('&lt;br&gt;','\n')
-						turl = get_tag(mmsg,'link')
-					else:
-						tbody = get_tag(mmsg,'content').replace('&lt;br&gt;','\n')
-						tu1 = mmsg.index('<link')
-						tu2 = mmsg.find('href=\"',tu1)+6
-						tu3 = mmsg.find('\"',tu2)
-						turl = mmsg[tu2:tu3].replace('&lt;br&gt;','\n')
-					tmsg, tsubj, tmurl = '','',''
-					if submode == 'full': tmsg,tsubj = tbody,ttitle
-					elif submode == 'body': tmsg = tbody
-					elif submode[:4] == 'head': tsubj = ttitle
-					else: return None
-					if urlmode: tmurl = turl
-					t_msg.append((tmsg, tsubj, tmurl))
-				if mode == 'new' and mmsg == feed[1]:
+					if mode == 'new' and hashlib.md5(mmsg.encode('utf-8')).hexdigest() in tstop: skip = True
+					else: skip = None
+					if not skip:
+						if is_rss_aton == 1:
+							tbody = get_tag(mmsg,'description').replace('&lt;br&gt;','\n')
+							turl = get_tag(mmsg,'link')
+						else:
+							tbody = get_tag(mmsg,'content').replace('&lt;br&gt;','\n')
+							tu1 = mmsg.index('<link')
+							tu2 = mmsg.find('href=\"',tu1)+6
+							tu3 = mmsg.find('\"',tu2)
+							turl = mmsg[tu2:tu3].replace('&lt;br&gt;','\n')
+						tmsg, tsubj, tmurl = '','',''
+						if submode == 'full': tmsg,tsubj = tbody,ttitle
+						elif submode == 'body': tmsg = tbody
+						elif submode[:4] == 'head': tsubj = ttitle
+						else: return None
+						if urlmode: tmurl = turl
+						t_msg.append((tmsg, tsubj, tmurl))
+				if mode == 'new' and not len(t_msg):
 					if text[4] == 'silent': return None
 					else: return L('New feeds not found!')
 				if headline: type = 'headline'
@@ -701,12 +697,6 @@ def presenceCB(sess,mess):
 			if taa[4] != jid: tf.append(taa)
 		feedbase = tf
 		writefile(feeds,str(feedbase))
-		lastfeeds = getFile(lafeeds,[])
-		tf = []
-		for taa in lastfeeds:
-			if taa[2] != jid: tf.append(taa)
-		lastfeeds = tf
-		writefile(lafeeds,str(lastfeeds))
 	elif type != 'unavailable' and type != 'subscribed' and type != 'unsubscribe':
 		show,status,priority = 'online','Ready!',777
 		for tmp in Settings:
@@ -770,9 +760,6 @@ def check_rss():
 			pprint('check rss: '+fd[0]+' for '+fd[4])
 			text = rss('new '+fd[0]+' 20 '+fd[2]+' silent',fd[4],'chat',to)
 			if text: sender(xmpp.Message(fd[4], text[:limit], 'chat'),to)
-			feedbase.remove(fd)
-			feedbase.append([fd[0], fd[1], fd[2], l_hl, fd[4]])
-			writefile(feeds,str(feedbase))
 			break
 
 def flush_stats():
@@ -804,7 +791,6 @@ LOG_FILENAME = slog_folder+'error.txt'	# логи ошибок
 set_folder = 'settings/'				# папка настроек
 configname = set_folder+'config.py'		# конфиг бота
 feeds = set_folder+'feed'				# список rss каналов
-lafeeds = set_folder+'lastfeeds'		# последние новости по каждому каналу
 loc_file = set_folder+'locale'			# файл локализации
 loc_folder = 'locales/'					# папка локализаций
 
