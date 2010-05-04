@@ -99,7 +99,7 @@ def rss_repl_del_html(ms,item):
 	DS,SP,T = '<%s>','/%s',re.findall('<(.*?)>', ms, re.S)
 	if len(T):
 		for tmp in T:
-			if tmp[-1:] == '/':
+			if (tmp[:3] == '!--' and tmp[-2:] == '--') or tmp[-1:] == '/':
 				pattern = DS % tmp
 				pos = ms.find(pattern)
 				ms = ms[:pos] + item + ms[pos+len(pattern):]
@@ -116,7 +116,7 @@ def rss_repl_del_html(ms,item):
 					pos1 = ms.find(pat1)
 					pos2 = ms.find(pat2,pos1)
 					ms = ms[:pos1] + item + ms[pos1+len(pat1):pos2] + item + ms[pos2+len(pat2):]
-	for tmp in ('hr','br','li','ul','img','dt','dd'):
+	for tmp in ('hr','br','li','ul','img','dt','dd','p'):
 		T = re.findall('<%s.*?>' % tmp, ms, re.S)
 		for tmp1 in T: ms = ms.replace(tmp1,item,1)
 	return ms
