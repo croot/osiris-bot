@@ -174,6 +174,21 @@ def html_encode(body):
 		try: return smart_encode(body,enc)
 		except: return L('Encoding error!')
 
+def rss_flush(jid,link,break_point):
+	global feedbase, feeds
+	tstop = []
+	feedbase = getFile(feeds,[])
+	for tmp in feedbase:
+		if tmp[4] == jid and tmp[0] == link:
+			try: tstop = tmp[5]
+			except: pass
+			feedbase.remove(tmp)
+			if not break_point: break_point = tstop
+			feedbase.append([tmp[0], tmp[1], tmp[2], int(time.time()), tmp[4], break_point])
+			writefile(feeds,str(feedbase))
+			break
+	return tstop
+		
 def rss(text,jid,type,to):
 	global feedbase, feeds
 	text = text.split(' ')
@@ -267,17 +282,9 @@ def rss(text,jid,type,to):
 			headline,urlmode = 'headline' in submode.split('-'),'url' in submode.split('-')
 			submode = submode.split('-')[0]
 			try:
-				break_point,tstop = [],[]
+				break_point = []
 				for tmp in feed[1:]: break_point.append(hashlib.md5(tmp.encode('utf-8')).hexdigest())
-				feedbase = getFile(feeds,[])
-				for tmp in feedbase:
-					if tmp[4] == jid and tmp[0] == link:
-							try: tstop = tmp[5]
-							except: pass
-							feedbase.remove(tmp)
-							feedbase.append([tmp[0], tmp[1], tmp[2], int(time.time()), tmp[4], break_point])
-							writefile(feeds,str(feedbase))
-							break
+				tstop = rss_flush(jid,link,break_point)
 				t_msg = []
 				for mmsg in feed[1:lng]:
 					ttitle = get_tag(mmsg,'title').replace('&lt;br&gt;','\n')
@@ -313,9 +320,11 @@ def rss(text,jid,type,to):
 					sender(i,getRoom(to))
 				return None
 			except:
+				rss_flush(jid,link,None)
 				if text[4] == 'silent': return None
 				else: return L('Error!')
 		else:
+			rss_flush(jid,link,None)
 			if text[4] == 'silent': return None
 			else:
 				if feed != L('Encoding error!'): title = get_tag(feed,'title')
