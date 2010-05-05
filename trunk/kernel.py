@@ -770,7 +770,7 @@ def check_rss():
 		except: ll_hl = 0
 		if ll_hl + ofset <= l_hl and (fd[4] in online or not 'headline' in fd[2].split('-')):
 			pprint('check rss: '+fd[0]+' for '+fd[4])
-			text = rss('new '+fd[0]+' '+rss_max_feed_limit+' '+fd[2]+' silent',fd[4],'chat',to)
+			text = rss('new %s %s %s silent' % (fd[0],rss_max_feed_limit,fd[2]) ,fd[4],'chat',to)
 			if text: sender(xmpp.Message(fd[4], text[:limit], 'chat'),to)
 			break
 
