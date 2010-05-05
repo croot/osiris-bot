@@ -286,7 +286,7 @@ def rss(text,jid,type,to):
 			submode = submode.split('-')[0]
 			try:
 				break_point = []
-				for tmp in feed[1:rss_max_feed_limit+1]: break_point.append(hashlib.md5(tmp.encode('utf-8')).hexdigest())
+				for tmp in feed[1:]: break_point.append(hashlib.md5(tmp.encode('utf-8')).hexdigest())
 				tstop = rss_flush(jid,link,break_point)
 				t_msg,f_count = [],0
 				for mmsg in feed[1:rss_max_feed_limit+1]:
@@ -770,7 +770,7 @@ def check_rss():
 		except: ll_hl = 0
 		if ll_hl + ofset <= l_hl and (fd[4] in online or not 'headline' in fd[2].split('-')):
 			pprint('check rss: '+fd[0]+' for '+fd[4])
-			text = rss('new '+fd[0]+' 20 '+fd[2]+' silent',fd[4],'chat',to)
+			text = rss('new '+fd[0]+' '+rss_max_feed_limit+' '+fd[2]+' silent',fd[4],'chat',to)
 			if text: sender(xmpp.Message(fd[4], text[:limit], 'chat'),to)
 			break
 
