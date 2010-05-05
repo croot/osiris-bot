@@ -69,6 +69,8 @@ rmass = ((u'\"','&quot;'),(u'\'','&apos;'),(u'˜\'','&tilde;'),
 		(u'⌈','&lceil;'),(u'⌉','&rceil;'),(u'⌊','&lfloor;'),(u'⌋','&rfloor'),(u'◊','&loz;'),(u'♠','&spades;'),(u'♣','&clubs;'),
 		(u'♥','&hearts;'),(u'♦','&diams;'))
 
+rss_max_feed_limit = 20
+
 def replacer(msg):
 	msg = rss_replace(msg)
 	msg = rss_del_html(msg)
@@ -273,24 +275,23 @@ def rss(text,jid,type,to):
 			else: 
 				if feed.count('<entry>'): feed = feed.split('<entry>')
 				else: feed = feed.split('<entry ')
-			if len(text) > 2: lng = int(text[2])+1
+			if len(text) > 2: lng = int(text[2])
 			else: lng = len(feed)
 			if len(feed) <= lng: lng = len(feed)
-			if lng>=21: lng = 21
+			if lng > rss_max_feed_limit: lng = rss_max_feed_limit
+			elif lng < 1: lng = 1
 			if len(text) > 3: submode = text[3]
 			else: submode = 'full'
 			headline,urlmode = 'headline' in submode.split('-'),'url' in submode.split('-')
 			submode = submode.split('-')[0]
 			try:
 				break_point = []
-				for tmp in feed[1:]: break_point.append(hashlib.md5(tmp.encode('utf-8')).hexdigest())
+				for tmp in feed[1:rss_max_feed_limit+1]: break_point.append(hashlib.md5(tmp.encode('utf-8')).hexdigest())
 				tstop = rss_flush(jid,link,break_point)
-				t_msg = []
-				for mmsg in feed[1:lng]:
+				t_msg,f_count = [],0
+				for mmsg in feed[1:rss_max_feed_limit+1]:
 					ttitle = get_tag(mmsg,'title').replace('&lt;br&gt;','\n')
-					if mode == 'new' and hashlib.md5(mmsg.encode('utf-8')).hexdigest() in tstop: skip = True
-					else: skip = None
-					if not skip:
+					if mode == 'get' or not (hashlib.md5(mmsg.encode('utf-8')).hexdigest() in tstop):
 						if is_rss_aton == 1:
 							tbody = get_tag(mmsg,'description').replace('&lt;br&gt;','\n')
 							turl = get_tag(mmsg,'link')
@@ -307,7 +308,9 @@ def rss(text,jid,type,to):
 						else: return None
 						if urlmode: tmurl = turl
 						t_msg.append((tmsg, tsubj, tmurl))
-				if mode == 'new' and not len(t_msg):
+						f_count += 1
+						if f_count >= lng: break
+				if mode == 'new' and not f_count:
 					if text[4] == 'silent': return None
 					else: return L('New feeds not found!')
 				if headline: type = 'headline'
