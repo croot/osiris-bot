@@ -270,11 +270,15 @@ def rss(text,jid,type,to):
 		feed = html_encode(feed)
 		if is_rss_aton and feed != L('Encoding error!'):
 			if is_rss_aton == 1:
-				if feed.count('<item>'): feed = feed.split('<item>')
-				else: feed = feed.split('<item ')
+				if feed.count('<item>'): fd = feed.split('<item>')
+				else: fd = feed.split('<item ')
+				feed = [fd[0]]
+				for tmp in fd[1:]: feed.append(fd.split('</item>')[0])
 			else: 
-				if feed.count('<entry>'): feed = feed.split('<entry>')
-				else: feed = feed.split('<entry ')
+				if feed.count('<entry>'): fd = feed.split('<entry>')
+				else: fd = feed.split('<entry ')
+				feed = [fd[0]]
+				for tmp in fd[1:]: feed.append(fd.split('</entry>')[0])				
 			if len(text) > 2: lng = int(text[2])
 			else: lng = len(feed)-1
 			if len(feed)-1 <= lng: lng = len(feed)-1
