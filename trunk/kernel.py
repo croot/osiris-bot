@@ -289,7 +289,7 @@ def rss(text,jid,type,to):
 				for tmp in feed[1:]: break_point.append(hashlib.md5(tmp.encode('utf-8')).hexdigest())
 				tstop = rss_flush(jid,link,break_point)
 				t_msg,f_count = [],0
-				for mmsg in feed[1:rss_max_feed_limit+1]:
+				for mmsg in feed[1:]:
 					ttitle = get_tag(mmsg,'title').replace('&lt;br&gt;','\n')
 					if mode == 'get' or not (hashlib.md5(mmsg.encode('utf-8')).hexdigest() in tstop):
 						if is_rss_aton == 1:
