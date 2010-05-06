@@ -276,8 +276,8 @@ def rss(text,jid,type,to):
 				if feed.count('<entry>'): feed = feed.split('<entry>')
 				else: feed = feed.split('<entry ')
 			if len(text) > 2: lng = int(text[2])
-			else: lng = len(feed)
-			if len(feed) <= lng: lng = len(feed)
+			else: lng = len(feed)-1
+			if len(feed)-1 <= lng: lng = len(feed)-1
 			if lng > rss_max_feed_limit: lng = rss_max_feed_limit
 			elif lng < 1: lng = 1
 			if len(text) > 3: submode = text[3]
