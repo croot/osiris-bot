@@ -311,7 +311,7 @@ def rss(text,jid,type,to):
 						elif submode[:4] == 'head': tsubj = ttitle
 						else: return None
 						if urlmode: tmurl = turl
-						t_msg.append((tmsg, tsubj, tmurl))
+						t_msg.append((tmsg, tsubj.replace('\n','; ', tmurl))
 						f_count += 1
 						if f_count >= lng: break
 				if mode == 'new' and not f_count:
