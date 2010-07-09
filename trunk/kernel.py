@@ -190,10 +190,17 @@ def rss_flush(jid,link,break_point):
 			writefile(feeds,str(feedbase))
 			break
 	return tstop
+	
+def reduce_trash(t):
+	t = t.replace('\n',' ').replace('\r',' ').replace('\t',' ')
+	while t.count('  '): t = t.replace('  ',' ')
+	if t[0] == ' ': t = t[1:]
+	if t[-1] == ' ': t = t[:-1]
+	return t
 		
 def rss(text,jid,type,to):
 	global feedbase, feeds
-	text = text.split(' ')
+	text = reduce_trash(text).split(' ')
 	tl = len(text)
 	if tl < 5: text.append('!')
 	mode = text[0].lower() # show | add | del | clear | new | get
@@ -262,7 +269,10 @@ def rss(text,jid,type,to):
 		link = text[1]
 		if not link[:10].count('://'): link = 'http://'+link
 		try: feed = urllib.urlopen(link).read()
-		except: return None
+		except Exception, SM:
+			rss_flush(jid,link,None)
+			if text[4] == 'silent': return None
+			else: return L('Bad url or rss/atom not found at %s') % link
 		is_rss_aton,fc = 0,feed[:256]
 		if fc.count('<?xml version='):
 			if fc.count('<feed'): is_rss_aton = 2
@@ -334,7 +344,10 @@ def rss(text,jid,type,to):
 			rss_flush(jid,link,None)
 			if text[4] == 'silent': return None
 			else:
-				if feed != L('Encoding error!'): title = get_tag(feed,'title')
+				if feed.count('<TITLE>') and feed.count('</TITLE>'): titl = 'TITLE'
+				elif feed.count('<title>') and feed.count('</title>'): titl = 'title'
+				else: title = ''
+				if feed != L('Encoding error!'): title = get_tag(feed,titl)
 				else: title = feed
 				return L('Bad url or rss/atom not found at %s - %s') % (link,title)
 	else: return 'show|add|del|clear|new|get'
