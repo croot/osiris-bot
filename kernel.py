@@ -289,7 +289,9 @@ def rss(text,jid,type,to):
 				else: fd = feed.split('<entry ')
 				feed = [fd[0]]
 				for tmp in fd[1:]: feed.append(tmp.split('</entry>')[0])				
-			if len(text) > 2: lng = int(text[2])
+			if len(text) > 2:
+				try: lng = int(text[2])
+				except: lng = rss_max_feed_limit
 			else: lng = len(feed)-1
 			if len(feed)-1 <= lng: lng = len(feed)-1
 			if lng > rss_max_feed_limit: lng = rss_max_feed_limit
@@ -346,7 +348,7 @@ def rss(text,jid,type,to):
 			else:
 				if feed.count('<TITLE>') and feed.count('</TITLE>'): titl = 'TITLE'
 				elif feed.count('<title>') and feed.count('</title>'): titl = 'title'
-				else: title = ''
+				else: titl = ''
 				if feed != L('Encoding error!'): title = get_tag(feed,titl)
 				else: title = feed
 				return L('Bad url or rss/atom not found at %s - %s') % (link,title)
@@ -604,8 +606,10 @@ def translate(from_lang,to_lang,text):
 	query = urllib.urlencode({'q' : text.encode("utf-8"),'langpair':from_lang.lower()+'|'+to_lang.lower()})
 	url = 'http://ajax.googleapis.com/ajax/services/language/translate?v=1.0&%s'.encode("utf-8") % (query)
 	search_results = urllib.urlopen(url)
-	json = simplejson.loads(search_results.read())
-	return rss_replace(json['responseData']['translatedText'])
+	try: 
+		json = simplejson.loads(search_results.read())
+		return rss_replace(json['responseData']['translatedText'])
+	except: return L('Error!')
 
 def messageCB(sess,mess):
 	global message_in
