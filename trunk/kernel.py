@@ -278,6 +278,9 @@ def rss(text,jid,type,to):
 			if fc.count('<feed'): is_rss_aton = 2
 			elif fc.count('<rss') or fc.count('<rdf'): is_rss_aton = 1
 		feed = html_encode(feed)
+		feed = re.sub(u'(<span.*?>.*?</span>)','',feed)
+		feed = re.sub(u'(<div.*?>)','',feed)
+		feed = re.sub(u'(</div>)','',feed)
 		if is_rss_aton and feed != L('Encoding error!'):
 			if is_rss_aton == 1:
 				if feed.count('<item>'): fd = feed.split('<item>')
