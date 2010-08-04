@@ -26,6 +26,7 @@ import thread
 import threading
 import time
 import urllib
+import urllib2
 import xmpp
 
 sema = threading.BoundedSemaphore(value=30)
@@ -278,6 +279,7 @@ def rss(text,jid,type,to):
 				feed = urllib2.urlopen(url=req,timeout=rss_get_timeout).read(size_overflow)
 			else: feed = urllib.urlopen(link).read()
 		except:
+			raise
 			rss_flush(jid,link,None)
 			if text[4] == 'silent': return None
 			else: return L('Unable to access server! %s') % link
