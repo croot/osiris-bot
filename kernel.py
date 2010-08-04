@@ -279,7 +279,7 @@ def rss(text,jid,type,to):
 		except:
 			rss_flush(jid,link,None)
 			if text[4] == 'silent': return None
-			else: return feed = L('Unable to access server! %s') % link
+			else: return L('Unable to access server! %s') % link
 		is_rss_aton,fc = 0,feed[:256]
 		if fc.count('<?xml version='):
 			if fc.count('<feed'): is_rss_aton = 2
