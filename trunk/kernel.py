@@ -70,6 +70,8 @@ rmass = ((u'\"','&quot;'),(u'\'','&apos;'),(u'˜\'','&tilde;'),
 		(u'♥','&hearts;'),(u'♦','&diams;'))
 
 rss_max_feed_limit = 20
+user_agent = 'Mozilla/5.0 (X11; U; Linux x86_64; ru; rv:1.9.0.4) Gecko/2008120916 Gentoo Firefox/3.0.4'
+size_overflow = 262144
 
 def replacer(msg):
 	msg = rss_replace(msg)
@@ -268,19 +270,24 @@ def rss(text,jid,type,to):
 	elif mode == 'new' or mode == 'get':
 		link = text[1]
 		if not link[:10].count('://'): link = 'http://'+link
-		try: feed = urllib.urlopen(link).read()
-		except Exception, SM:
+		try:
+			if int(''.join(re.findall('([0-9])+\.([0-9])+',sys.version)[0])) >= 26: # python 2.6 and higher
+				req = urllib2.Request(link.encode('utf-8'))
+				req.add_header('User-Agent',user_agent)
+				feed = urllib2.urlopen(url=req,timeout=GT('rss_get_timeout')).read(size_overflow)
+			else: feed = urllib.urlopen(link).read()
+		except:
 			rss_flush(jid,link,None)
 			if text[4] == 'silent': return None
-			else: return L('Bad url or rss/atom not found at %s') % link
+			else: return feed = L('Unable to access server! %s') % link
 		is_rss_aton,fc = 0,feed[:256]
 		if fc.count('<?xml version='):
 			if fc.count('<feed'): is_rss_aton = 2
 			elif fc.count('<rss') or fc.count('<rdf'): is_rss_aton = 1
-		feed = html_encode(feed)
-		feed = re.sub(u'(<span.*?>.*?</span>)','',feed)
-		feed = re.sub(u'(<div.*?>)','',feed)
-		feed = re.sub(u'(</div>)','',feed)
+			feed = html_encode(feed)
+			feed = re.sub(u'(<span.*?>.*?</span>)','',feed)
+			feed = re.sub(u'(<div.*?>)','',feed)
+			feed = re.sub(u'(</div>)','',feed)
 		if is_rss_aton and feed != L('Encoding error!'):
 			if is_rss_aton == 1:
 				if feed.count('<item>'): fd = feed.split('<item>')
