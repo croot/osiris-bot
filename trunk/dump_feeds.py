@@ -46,6 +46,6 @@ tmp.sort()
 
 if os.path.isfile(dump): os.remove(dump)
 
-for t in tmp: writefile(dump,'\t'.join(t))
+for t in tmp: writefile(dump,'\t'.join(t)+'\n')
 
 print 'finished!'
