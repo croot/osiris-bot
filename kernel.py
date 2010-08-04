@@ -72,6 +72,7 @@ rmass = ((u'\"','&quot;'),(u'\'','&apos;'),(u'˜\'','&tilde;'),
 rss_max_feed_limit = 20
 user_agent = 'Mozilla/5.0 (X11; U; Linux x86_64; ru; rv:1.9.0.4) Gecko/2008120916 Gentoo Firefox/3.0.4'
 size_overflow = 262144
+rss_get_timeout = 15
 
 def replacer(msg):
 	msg = rss_replace(msg)
@@ -274,7 +275,7 @@ def rss(text,jid,type,to):
 			if int(''.join(re.findall('([0-9])+\.([0-9])+',sys.version)[0])) >= 26: # python 2.6 and higher
 				req = urllib2.Request(link.encode('utf-8'))
 				req.add_header('User-Agent',user_agent)
-				feed = urllib2.urlopen(url=req,timeout=GT('rss_get_timeout')).read(size_overflow)
+				feed = urllib2.urlopen(url=req,timeout=rss_get_timeout).read(size_overflow)
 			else: feed = urllib.urlopen(link).read()
 		except:
 			rss_flush(jid,link,None)
@@ -423,9 +424,16 @@ def sender(item,ident):
 	sleep(0.1)
 	send_count(item,ident)
 
-def readfile(filename): return file(filename).read()
+def readfile(filename):
+	fp = file(filename)
+	data = fp.read()
+	fp.close()
+	return data
 
-def writefile(filename, data): file(filename, 'w').write(data)
+def writefile(filename, data):
+	fp = file(filename, 'w')
+	fp.write(data)
+	fp.close()
 
 def getFile(filename,default):
 	if os.path.isfile(filename):
