@@ -279,7 +279,6 @@ def rss(text,jid,type,to):
 				feed = urllib2.urlopen(url=req,timeout=rss_get_timeout).read(size_overflow)
 			else: feed = urllib.urlopen(link).read()
 		except:
-			raise
 			rss_flush(jid,link,None)
 			if text[4] == 'silent': return None
 			else: return L('Unable to access server! %s') % link
@@ -570,6 +569,13 @@ def timeZero(val):
 		else: rval.append(str(val[iv]))
 	return rval
 
+def is_ignored(jid):
+	jid = getRoom(jid)
+	for tmp in Ignore:
+		if tmp.count('@') and tmp == jid: return True
+		elif tmp.count(jid): return True
+	return False
+	
 def iqCB(sess,iq):
 	global iq_in
 	iq_in += 1
@@ -580,7 +586,7 @@ def iqCB(sess,iq):
 
 	if iq.getType()=='get':
 		to = unicode(iq.getTo().getStripped())
-		if getRoom(to) in Ignore: return None
+		if is_ignored(to): return None
 		if iq.getTag(name='query', namespace=xmpp.NS_VERSION):
 			pprint('*** iq:version from '+unicode(nick))
 			i=xmpp.Iq(to=nick, typ='result')
@@ -636,7 +642,7 @@ def messageCB(sess,mess):
 	message_in += 1
 	type=unicode(mess.getType())
 	jid=unicode(mess.getFrom().getStripped()).lower()
-	if getRoom(jid) in Ignore: return
+	if is_ignored(jid): return
 	text=unicode(mess.getBody())
 	if text == 'None' or text == '': return
 	if mess.getTimestamp() != None: return
@@ -724,7 +730,7 @@ def presenceCB(sess,mess):
 	presence_in += 1
 	type=unicode(mess.getType())
 	jid=getRoom(unicode(mess.getFrom().getStripped())).lower()
-	if jid in Ignore: return
+	if is_ignored(jid): return
 	to=getRoom(unicode(mess.getTo()))
 	if jid == to: return
 
@@ -750,16 +756,6 @@ def presenceCB(sess,mess):
 			if taa[4] != jid: tf.append(taa)
 		feedbase = tf
 		writefile(feeds,str(feedbase))
-	elif type != 'unavailable' and type != 'subscribed' and type != 'unsubscribe':
-		show,status,priority = 'online','Ready!',777
-		for tmp in Settings:
-			if getRoom(tmp['jid']) == to:
-				show,status,priority = tmp['status'],tmp['message'],tmp['priority']
-				break
-		j = Presence(jid, show=show, status=status, priority=priority)
-		j.setTag('c', namespace=NS_CAPS, attrs={'node':capsNode,'ver':capsVersion})
-		sender(j,to)
-		pprint('Send status for %s from %s' % (jid,getName(to)))
 	if type == 'unavailable' and jid in online: online.remove(jid)
 	elif not jid in online: online.append(jid)
 
@@ -927,7 +923,14 @@ for st in Settings:
 	cl[jr].RegisterHandler('presence',presenceCB)
 	cl[jr].RegisterDisconnectHandler(disconnecter)
 	cl[jr].UnregisterDisconnectHandler(cl[jr].DisconnectHandler)
-	cl[jr].sendInitPresence()
+	show,status,priority = 'online','Ready!',777
+	for tmp in Settings:
+		if getRoom(tmp['jid']) == jr:
+			show,status,priority = tmp['status'],tmp['message'],tmp['priority']
+			break
+	j = Presence(show=show, status=status, priority=priority)
+	j.setTag('c', namespace=NS_CAPS, attrs={'node':capsNode,'ver':capsVersion})
+	sender(j,jr)
 
 game_over = None
 thr(now_schedule,(),'schedule')
