@@ -34,7 +34,7 @@ RUENsettings = {
 
 Settings = [RSSsettings,ENRUsettings,RUENsettings]
 Owner = ['jid1@server.tld','jid2@server.tld','jid3@server.tld']
-Ignore = []
+Ignore = ['gmail.com']
 
 #debugmode = True
 #dm = True
