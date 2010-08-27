@@ -8,7 +8,7 @@ These commands are available for owner from any bot's jid:
 <li>{{{sh <command> - execute shell command}}}
 <li>{{{exec <command> - execute python code}}}
 <li>{{{update - update bot from svn repository}}}
-<li>{{{exit - shutdown bot}}}
+<li>{{{quit - shutdown bot}}}
 <li>{{{restart - restart bot}}}
 <li>{{{stats - show some statistic}}}
 <li>{{{help - about me}}}
