@@ -575,7 +575,7 @@ def is_ignored(jid):
 	jid = getRoom(jid)
 	for tmp in Ignore:
 		if tmp.count('@') and tmp == jid: return True
-		elif tmp.count(jid): return True
+		elif jid.count(tmp): return True
 	return False
 	
 def iqCB(sess,iq):
