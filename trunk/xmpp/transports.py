@@ -28,7 +28,7 @@ Also exception 'error' is defined to allow capture of this module specific excep
 """
 
 import socket,select,base64,dispatcher,sys
-if sys.version[:3] == '2.6': import ssl
+if float(sys.version[:3]) >= 2.6: import ssl
 from simplexml import ustr
 from client import PlugIn
 from protocol import *
@@ -311,8 +311,7 @@ class TLS(PlugIn):
 
 	def _startSSL(self):
 		tcpsock=self._owner.Connection
-		if sys.version[:3]=='2.6':
-			tcpsock._sslObj = ssl.wrap_socket(tcpsock._sock, None, None)
+		if float(sys.version[:3]) >= 2.6: tcpsock._sslObj = ssl.wrap_socket(tcpsock._sock, None, None)
 		else:
 			tcpsock._sslObj = socket.ssl(tcpsock._sock, None, None)
 			tcpsock._sslIssuer = tcpsock._sslObj.issuer()
