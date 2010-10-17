@@ -935,6 +935,7 @@ for st in Settings:
 	j = Presence(show=show, status=status, priority=priority)
 	j.setTag('c', namespace=NS_CAPS, attrs={'node':capsNode,'ver':capsVersion})
 	sender(j,jr)
+	sleep(1)
 
 game_over = None
 thr(now_schedule,(),'schedule')
