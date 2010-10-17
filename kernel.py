@@ -862,6 +862,7 @@ thread_error_count = 0					# счётчик ошибок тредов
 reboot_time = 180						# таймаут рестарта бота при ошибке не стадии подключения (нет инета, ошибка авторизации)
 bot_exit_type = None					# причина завершения бота
 thread_type = True						# тип тредов
+ENABLE_TLS = True						# принудительное отключение TLS
 message_in = 0
 message_out = 0
 iq_in = 0
@@ -909,9 +910,9 @@ for st in Settings:
 	jr = getRoom(jid).lower()
 	
 	try:
-		if dm: cl[jr] = Client(jid.getDomain())
-		else: cl[jr] = Client(jid.getDomain(), debug=[])
-		cl[jr].connect()
+		if dm: cl[jr] = Client(jid.getDomain(),ENABLE_TLS=ENABLE_TLS)
+		else: cl[jr] = Client(jid.getDomain(), debug=[],ENABLE_TLS=ENABLE_TLS)
+		cl[jr].connect(ENABLE_TLS=ENABLE_TLS)
 		pprint('> Connected')
 		cl[jr].auth(jid.getNode(), st['password'], jid.getResource())
 		pprint('> Autheticated')

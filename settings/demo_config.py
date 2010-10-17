@@ -41,3 +41,4 @@ Ignore = ['gmail.com']
 #dm2 = True
 
 CommandsLog = True
+#ENABLE_TLS = False
