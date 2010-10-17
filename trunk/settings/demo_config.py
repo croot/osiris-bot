@@ -12,7 +12,8 @@ RSSsettings = {
 'status'	: u'online',
 'message'	: u'Osiris RSS/ATOM feed bot',
 'priority'	: 777,
-'msglimit'	: 4096}
+'msglimit'	: 4096,
+'port'		: 5222}
 
 ENRUsettings = {
 'whoami'	: u'translate en ru',
@@ -21,7 +22,8 @@ ENRUsettings = {
 'status'	: u'online',
 'message'	: u'Osiris EN>RU translate bot',
 'priority'	: 777,
-'msglimit'	: 512}
+'msglimit'	: 512,
+'port'		: 5222}
 
 RUENsettings = {
 'whoami'	: u'translate ru en',
@@ -30,7 +32,8 @@ RUENsettings = {
 'status'	: u'online',
 'message'	: u'Osiris RU>EN translate bot',
 'priority'	: 777,
-'msglimit'	: 512}
+'msglimit'	: 512,
+'port'		: 5222}
 
 Settings = [RSSsettings,ENRUsettings,RUENsettings]
 Owner = ['jid1@server.tld','jid2@server.tld','jid3@server.tld']
