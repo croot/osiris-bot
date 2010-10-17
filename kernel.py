@@ -908,10 +908,11 @@ for st in Settings:
 	jid = xmpp.JID(st['jid'])
 	pprint('>>> bot jid: %s' % st['jid'])
 	jr = getRoom(jid).lower()
-	
+	try: Port = st['port']
+	except: Port = 5222
 	try:
-		if dm: cl[jr] = Client(jid.getDomain(),ENABLE_TLS=ENABLE_TLS)
-		else: cl[jr] = Client(jid.getDomain(), debug=[],ENABLE_TLS=ENABLE_TLS)
+		if dm: cl[jr] = Client(jid.getDomain(),Port,ENABLE_TLS=ENABLE_TLS)
+		else: cl[jr] = Client(jid.getDomain(),Port,debug=[],ENABLE_TLS=ENABLE_TLS)
 		cl[jr].connect(ENABLE_TLS=ENABLE_TLS)
 		pprint('> Connected')
 		cl[jr].auth(jid.getNode(), st['password'], jid.getResource())
