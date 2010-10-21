@@ -352,10 +352,12 @@ def rss(text,jid,type,to):
 					else: i = xmpp.Message(to=jid, body=tmsg, typ=type, subject=replacer(tmp[1]))
 					sender(i,getRoom(to))
 				return None
-			except:
+			except Exception, SM:
+				try: SM = str(SM)
+				except: SM = unicode(SM)
 				rss_flush(jid,link,None)
 				if text[4] == 'silent': return None
-				else: return L('Error!')
+				else: return L('Error! %s') % SM
 		else:
 			rss_flush(jid,link,None)
 			if text[4] == 'silent': return None
