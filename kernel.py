@@ -632,15 +632,62 @@ def iqCB(sess,iq):
 			sender(i,getRoom(to))
 			raise xmpp.NodeProcessed
 
-def translate(from_lang,to_lang,text):
-	query = urllib.urlencode({'q' : text.encode("utf-8"),'langpair':from_lang.lower()+'|'+to_lang.lower()})
-	url = 'http://ajax.googleapis.com/ajax/services/language/translate?v=1.0&%s'.encode("utf-8") % (query)
-	search_results = urllib.urlopen(url)
-	try: 
-		json = simplejson.loads(search_results.read())
-		return rss_replace(json['responseData']['translatedText'])
-	except: return L('Error!')
-
+def translate(text,gj):
+	text = text.strip()
+	trlang = {'sq':L('Albanian'),'en':L('English'),'ar':L('Arabic'),'af':L('Afrikaans'),
+			'be':L('Belarusian'),'bg':L('Bulgarian'),'cy':L('Welsh'),'hu':L('Hungarian'),'vi':L('Vietnamese'),
+			'gl':L('Galician'),'nl':L('Dutch'),'el':L('Greek'),'da':L('Danish'),'iw':L('Hebrew'),'yi':L('Yiddish'),
+			'id':L('Indonesian'),'ga':L('Irish'),'is':L('Icelandic'),'es':L('Spanish'),'it':L('Italian'),
+			'ca':L('Catalan'),'zh':L('Chinese'),'ko':L('Korean'),'lv':L('Latvian'),'lt':L('Lithuanian'),
+			'mk':L('Macedonian'),'ms':L('Malay'),'mt':L('Maltese'),'de':L('German'),'no':L('Norwegian'),
+			'fa':L('Persian'),'pl':L('Polish'),'pt':L('Portuguese'),'ro':L('Romanian'),'ru':L('Russian'),
+			'sr':L('Serbian'),'sk':L('Slovak'),'sl':L('Slovenian'),'sw':L('Swahili'),'tl':L('Tagalog'),
+			'th':L('Thai'),'tr':L('Turkish'),'uk':L('Ukrainian'),'fi':L('Finnish'),'fr':L('french'),'hi':L('Hindi'),
+			'hr':L('Croatian'),'cs':L('Czech'),'sv':L('Swedish'),'et':L('Estonian'),'ja':L('Japanese'),'ht':L('Creole')}
+	if text.lower() == 'list': return L('Available languages for translate:') + ' ' + ', '.join(trlang.keys())
+	elif text.lower().split(' ',1)[0] == 'info':
+		text = text.lower().split(' ')
+		msg = ''
+		for tmp in text:
+			if tmp in trlang: msg += '%s - %s, ' % (tmp,trlang[tmp])
+		if len(msg): return L('Available languages: %s') % msg[:-2]
+		else: return L('I don\'t know this language')
+	elif text.lower().split(' ',1)[0] == 'set':
+		try: text = text.split(' ',1)[1].lower()
+		except:
+			try:
+				lng = getFile(lang_file,{})
+				return L('Default lang is %s') % trlang[lng[gj]]
+			except: return L('Set a default lang!')
+		if trlang.has_key(text):
+			lang = trlang[text]
+			lng = getFile(lang_file,{})
+			lng[gj] = text
+			writefile(lang_file,unicode(lng))
+			return L('Default lang is %s') % lang
+		else: return L('I don\'t know this language')
+	else:
+		if len(text):
+			tx = text.lower().split(' ',2)
+			try:
+				if trlang.has_key(tx[0]) and trlang.has_key(tx[1]): lpair,tr_text = '%s|%s' % (tx[0],tx[1]),text.split(' ',2)[2]
+				elif trlang.has_key(tx[0]) and not trlang.has_key(tx[1]): lpair,tr_text = '|%s' % tx[0],text.split(' ',1)[1]
+				else: lpair,tr_text = '|%s' % getFile(lang_file,{})[gj],text
+			except: return L('Incorrect language settings for translate. list - available languages.')
+			print unicode(lpair)
+			print unicode(tr_text)
+			if len(tr_text):	
+				query = urllib.urlencode({'v':'1.0', 'q':tr_text.encode('utf-8'), 'langpair':lpair})
+				url = 'http://ajax.googleapis.com/ajax/services/language/translate?%s' % (query)
+				search_results = urllib.urlopen(url).read()
+				json = simplejson.loads(search_results)
+				try:
+					if json: return rss_replace(json['responseData']['translatedText'])
+					else: return L('I can\'t translate it!')
+				except: return L('Not correct responce from server')
+			else: return L('What need to translate?')
+		else: return L('Command format: [from] [to] text')
+	
 def messageCB(sess,mess):
 	global message_in
 	message_in += 1
@@ -662,8 +709,8 @@ def messageCB(sess,mess):
 	if not whoami: return
 	if text: text = text[:limit]
 	pprint('ID%s|%s|%s' % (whoami,text,jid))
-	skip = None
-	if getRoom(jid) in Owner:
+	skip,gj = None,getRoom(jid)
+	if gj in Owner:
 		for tmp in OwnerCommands:
 			if text.split(' ',1)[0].lower() == tmp[0]:
 				skip = True
@@ -675,10 +722,14 @@ def messageCB(sess,mess):
 					else: text = 'What?'
 				else: text = tmp[1]()
 	if not skip:
-		if text.lower() == 'help': text = u'... oSiris Jabber Bot ...\n© 2oo9-2o1o Disabler Production Lab.\nhttp://isida-bot.com/osiris\nSend donation to:\nYandexMoney: 41001384336826\nWMZ: Z392970180590\nWMR: R378494692310\nWME: E164241657651\nBest regards Disabler'
+		if text.lower() == 'about': text = L(u'... oSiris Jabber Bot ...\n© 2oo9-2o1o Disabler Production Lab.\nhttp://isida-bot.com/osiris\nSend donation to:\nYandexMoney: 41001384336826\nWMZ: Z392970180590\nWMR: R378494692310\nWME: E164241657651\nBest regards Disabler')
+		elif text.lower() == 'help':
+			if whoami[0] == 'rss': text = 'type show|add|del|clear|new|get and follow instructions'
+			elif whoami[0] == 'translate': text = '[from] [to] text - translate\nlist - languages list\ninfo two char of lang - show language name\nset two char of lang - set default language'
+			else: text == L('Not configured now!')
 		elif whoami[0] == 'rss': text = rss(text,jid,type,to)
-		elif whoami[0] == 'translate': text = translate(whoami[1],whoami[2],text)
-		else: text == 'Not configured now!'
+		elif whoami[0] == 'translate': text = translate(text,gj)
+		else: text == L('Not configured now!')
 	if text: sender(xmpp.Message(jid, text[:limit], type),getRoom(to))
 
 def bot_update():
@@ -844,6 +895,7 @@ LOG_FILENAME = slog_folder+'error.txt'	# логи ошибок
 set_folder = 'settings/'				# папка настроек
 configname = set_folder+'config.py'		# конфиг бота
 feeds = set_folder+'feed'				# список rss каналов
+lang_file = set_folder+'lang'			# список языков по умолчанию
 loc_file = set_folder+'locale'			# файл локализации
 loc_folder = 'locales/'					# папка локализаций
 
@@ -855,7 +907,7 @@ dm = None								# отладка xmpppy
 dm2 = None								# отладка действий бота
 CommandsLog = None						# логгирование команд
 botName = 'Osiris-Bot'					# название бота
-botVersion = 'v0.02'					# версия бота
+botVersion = 'v0.03'					# версия бота
 capsVersion = botVersion[1:]			# версия для капса
 capsNode = 'Osiris-Bot'					# капс бота
 th_cnt = 0								# счётчик тредов
