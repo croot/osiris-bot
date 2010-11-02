@@ -2,7 +2,7 @@
 
 #------------------------------------------------
 #             Osiris-bot Config file
-#                  v0.1beta
+#                  v0.2beta
 #------------------------------------------------
 
 RSSsettings = {
@@ -15,27 +15,17 @@ RSSsettings = {
 'msglimit'	: 4096,
 'port'		: 5222}
 
-ENRUsettings = {
-'whoami'	: u'translate en ru',
-'jid'		: u'enru_login@server.tld/osiris en-ru translate',
+TRsettings = {
+'whoami'	: u'translate',
+'jid'		: u'tr_login@server.tld/osiris translate',
 'password'	: u'********',
 'status'	: u'online',
-'message'	: u'Osiris EN>RU translate bot',
+'message'	: u'Osiris translate bot',
 'priority'	: 777,
 'msglimit'	: 512,
 'port'		: 5222}
 
-RUENsettings = {
-'whoami'	: u'translate ru en',
-'jid'		: u'ruen_login@server.tld/osiris ru-en translate',
-'password'	: u'********',
-'status'	: u'online',
-'message'	: u'Osiris RU>EN translate bot',
-'priority'	: 777,
-'msglimit'	: 512,
-'port'		: 5222}
-
-Settings = [RSSsettings,ENRUsettings,RUENsettings]
+Settings = [RSSsettings,TRsettings]
 Owner = ['jid1@server.tld','jid2@server.tld','jid3@server.tld']
 Ignore = ['gmail.com']
 
