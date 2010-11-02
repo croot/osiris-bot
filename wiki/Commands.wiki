@@ -1,7 +1,7 @@
 #summary Bot commands
 #labels Featured
 
-= Bot owner commands =
+= Bot commands =
 
 These commands are available for owner from any bot's jid:
 
@@ -11,11 +11,18 @@ These commands are available for owner from any bot's jid:
 <li>{{{quit - shutdown bot}}}
 <li>{{{restart - restart bot}}}
 <li>{{{stats - show some statistic}}}
-<li>{{{help - about me}}}
+
+These commands are available for anybody from any bot's jid:
+
+<li>{{{help - short help}}}
+<li>{{{about - about me}}}
 
 = Translate jid's =
 
-No specific commands.
+<li>{{{[from] [to] text - translate text}}}
+<li>{{{list - show list of available languages}}}
+<li>{{{info [lang1] [lang2] [...] - show description of language}}}
+<li>{{{set [lang] - set default language for translate}}}
 
 = Feeds jid =
 
