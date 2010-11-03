@@ -674,8 +674,6 @@ def translate(text,gj):
 				elif trlang.has_key(tx[0]) and not trlang.has_key(tx[1]): lpair,tr_text = '|%s' % tx[0],text.split(' ',1)[1]
 				else: lpair,tr_text = '|%s' % getFile(lang_file,{})[gj],text
 			except: return L('Incorrect language settings for translate. list - available languages.')
-			print unicode(lpair)
-			print unicode(tr_text)
 			if len(tr_text):	
 				query = urllib.urlencode({'v':'1.0', 'q':tr_text.encode('utf-8'), 'langpair':lpair})
 				url = 'http://ajax.googleapis.com/ajax/services/language/translate?%s' % (query)
