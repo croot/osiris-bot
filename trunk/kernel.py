@@ -6,7 +6,7 @@
 #                               version 0.02
 #
 # --------------------------------------------------------------------
-#                  (c) 2oo9-2o1o Disabler Production Lab.
+#                       (c) Disabler Production Lab.
 # --------------------------------------------------------------------
 
 from __future__ import with_statement
@@ -720,7 +720,7 @@ def messageCB(sess,mess):
 					else: text = 'What?'
 				else: text = tmp[1]()
 	if not skip:
-		if text.lower() == 'about': text = L(u'... oSiris Jabber Bot ...\n© 2oo9-2o1o Disabler Production Lab.\nhttp://isida-bot.com/osiris\nSend donation to:\nYandexMoney: 41001384336826\nWMZ: Z392970180590\nWMR: R378494692310\nWME: E164241657651\nBest regards Disabler')
+		if text.lower() == 'about': text = L(u'... oSiris Jabber Bot ...\n© 2oo9-%s Disabler Production Lab.\nhttp://isida-bot.com/osiris\nSend donation to:\nYandexMoney: 41001384336826\nWMZ: Z392970180590\nWMR: R378494692310\nWME: E164241657651\nBest regards Disabler') % str(time.localtime()[0]).replace('0','o')
 		elif text.lower() == 'help':
 			if whoami[0] == 'rss': text = 'type show|add|del|clear|new|get and follow instructions'
 			elif whoami[0] == 'translate': text = '[from] [to] text - translate\nlist - languages list\ninfo two char of lang - show language name\nset two char of lang - set default language'
@@ -952,7 +952,7 @@ pprint('*** Bot Name: '+botName)
 pprint('*** Version '+botVersion)
 pprint('*** OS '+botOs)
 pprint('*'*50)
-pprint('*** (c) 2oo9-2o1o Disabler Production Lab.')
+pprint('*** (c) 2oo9-%s Disabler Production Lab.' % str(time.localtime()[0]).replace('0','o'))
 
 cl = {}
 
