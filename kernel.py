@@ -77,6 +77,7 @@ rss_get_timeout = 15
 
 def replacer(msg):
 	msg = rss_replace(msg)
+	for tmp in [['<div>',' '],['</div>','\n'],['<br/>','\n'],['<br />','\n']]: msg = msg.replace(*tmp)
 	msg = rss_del_html(msg)
 	msg = rss_replace(msg)
 	msg = rss_del_nn(msg)
