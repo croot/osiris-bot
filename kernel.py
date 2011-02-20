@@ -76,8 +76,10 @@ size_overflow = 262144
 rss_get_timeout = 15
 
 def replacer(msg):
+	def repl(t): return re.findall('<div.*?>(.*?)</div>',t.group(0),re.S+re.U+re.I)[0]
 	msg = rss_replace(msg)
-	for tmp in [['<div>',' '],['</div>','\n'],['<br/>','\n'],['<br />','\n']]: msg = msg.replace(*tmp)
+	msg = re.sub(r'(<div.*?>).*?(</div>)',repl,msg,re.S+re.U+re.I)
+	for tmp in [['<br/>','\n'],['<br />','\n']]: msg = msg.replace(*tmp)
 	msg = rss_del_html(msg)
 	msg = rss_replace(msg)
 	msg = rss_del_nn(msg)
