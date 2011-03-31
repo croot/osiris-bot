@@ -330,10 +330,11 @@ def rss(text,jid,type,to):
 							turl = get_tag(mmsg,'link')
 						else:
 							tbody = get_tag(mmsg,'content').replace('&lt;br&gt;','\n')
-							tu1 = mmsg.index('<link')
-							tu2 = mmsg.find('href=\"',tu1)+6
-							tu3 = mmsg.find('\"',tu2)
-							turl = mmsg[tu2:tu3].replace('&lt;br&gt;','\n')
+							try:
+								tu1 = mmsg.find('href=\"',mmsg.index('<link'))+6
+								tu2 = mmsg.find('\"',tu1)
+								turl = mmsg[tu1:tu2].replace('&lt;br&gt;','\n')
+							except: turl = 'URL %s' % L('Not found!')
 						tmsg, tsubj, tmurl = '','',''
 						if submode == 'full': tmsg,tsubj = tbody,ttitle
 						elif submode == 'body': tmsg = tbody
