@@ -17,7 +17,7 @@
 """
 Main xmpppy mechanism. Provides library with methods to assign different handlers
 to different XMPP stanzas.
-Contains one tunable attribute: DefaultTimeout (25 seconds by default). It defines time that 
+Contains one tunable attribute: DefaultTimeout (25 seconds by default). It defines time that
 Dispatcher.SendAndWaitForResponce method will wait for reply stanza before giving up.
 """
 
@@ -224,7 +224,7 @@ class Dispatcher(PlugIn):
 
 	def Event(self,realm,event,data):
 		""" Raise some event. Takes three arguments:
-			1) "realm" - scope of event. Usually a namespace. 
+			1) "realm" - scope of event. Usually a namespace.
 			2) "event" - the event itself. F.e. "SUCESSFULL SEND".
 			3) data that comes along with event. Depends on event."""
 		if self._eventHandler: self._eventHandler(realm,event,data)
@@ -234,6 +234,13 @@ class Dispatcher(PlugIn):
 			Called internally. """
 		if not session: session=self
 		session.Stream._mini_dom=None
+		
+		# bad stanza fixer!
+		for tmp in unicode(stanza).split('><')[1:]:
+			if tmp[0] == ' ':
+				self.DEBUG("Got bad stanza:\n %s" % unicode(stanza), 'ok')
+				return
+
 		name=stanza.getName()
 
 		if not direct and self._owner._route:
