@@ -371,7 +371,7 @@ def rss(text,jid,type,to):
 				else: titl = ''
 				if feed != L('Encoding error!'): title = get_tag(feed,titl)
 				else: title = feed
-				return L('Bad url or rss/atom not found at %s - %s') % (link,title)
+				return L('Bad url or rss/atom not found at %s - %s') % (html_encode(link),html_encode(title))
 	else: return 'show|add|del|clear|new|get'
 
 class KThread(threading.Thread):
