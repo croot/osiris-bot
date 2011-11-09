@@ -33,7 +33,7 @@ sema = threading.BoundedSemaphore(value=30)
 
 lmass = (('\n','<br>'),('\n','<br />'),('\n','<br/>'),('\n','\n\r'),('','<![CDATA['),('',']]>'),(u'','&nbsp;'),
 		(u'','&shy;'),(u'','&ensp;'),(u'','&emsp;'),(u'','&thinsp;'),(u'','&zwnj;'),(u'','&zwj;'))
-		
+
 rmass = ((u'\"','&quot;'),(u'\'','&apos;'),(u'˜\'','&tilde;'),
 		(u'&','&amp;'),(u'<','&lt;'),(u'>','&gt;'),(u'¡','&iexcl;'),(u'¢','&cent;'),(u'£','&pound;'),
 		(u'¤','&curren;'),(u'¥','&yen;'),(u'¦','&brvbar;'),(u'§','&sect;'),(u'¨','&uml;'),(u'©','&copy;'),(u'ª','&ordf;'),
@@ -97,7 +97,7 @@ def unescape(text):
 			try: text = unichr(htmlentitydefs.name2codepoint[text[1:-1]])
 			except KeyError: pass
 		return text
-	return re.sub("&#?\w+;", fixup, text)	
+	return re.sub("&#?\w+;", fixup, text)
 
 def rss_replace(ms):
 	for tmp in lmass: ms = ms.replace(tmp[1],tmp[0])
@@ -197,14 +197,14 @@ def rss_flush(jid,link,break_point):
 			writefile(feeds,str(feedbase))
 			break
 	return tstop
-	
+
 def reduce_trash(t):
 	t = t.replace('\n',' ').replace('\r',' ').replace('\t',' ')
 	while t.count('  '): t = t.replace('  ',' ')
 	if t[0] == ' ': t = t[1:]
 	if t[-1] == ' ': t = t[:-1]
 	return t
-		
+
 def rss(text,jid,type,to):
 	global feedbase, feeds
 	text = reduce_trash(text).split(' ')
@@ -303,7 +303,7 @@ def rss(text,jid,type,to):
 				if feed.count('<entry>'): fd = feed.split('<entry>')
 				else: fd = feed.split('<entry ')
 				feed = [fd[0]]
-				for tmp in fd[1:]: feed.append(tmp.split('</entry>')[0])				
+				for tmp in fd[1:]: feed.append(tmp.split('</entry>')[0])
 			if len(text) > 2:
 				try: lng = int(text[2])
 				except: lng = rss_max_feed_limit
@@ -427,7 +427,7 @@ def send_count(item,ident):
 	if itm == '<m': message_out += 1
 	elif itm == '<p': presence_out += 1
 	elif itm == '<i': iq_out += 1
-	
+
 def sender(item,ident):
 	global last_stream
 	sleep(0.1)
@@ -478,7 +478,7 @@ def get_tag_full(body,tag):
 def get_tag_item(body,tag,item):
 	body = get_tag_full(body,tag)
 	return get_subtag(body,item)
-	
+
 def parser(text):
 	text,ttext = unicode(text),''
 	for tmp in text:
@@ -583,7 +583,7 @@ def is_ignored(jid):
 		if tmp.count('@') and tmp == jid: return True
 		elif jid.count(tmp): return True
 	return False
-	
+
 def iqCB(sess,iq):
 	global iq_in
 	iq_in += 1
@@ -636,6 +636,27 @@ def iqCB(sess,iq):
 			sender(i,getRoom(to))
 			raise xmpp.NodeProcessed
 
+def get_opener(page_name, parameters=None):
+	socket.setdefaulttimeout(20)
+	try:
+		proxy_support = urllib2.ProxyHandler({'http' : 'http://%(user)s:%(password)s@%(host)s:%(port)d' % http_proxy})
+		opener = urllib2.build_opener(proxy_support, urllib2.HTTPHandler)
+		urllib2.install_opener(opener)
+	except: opener = urllib2.build_opener(urllib2.HTTPHandler)
+	opener.addheaders = [('User-agent', 'Mozilla/5.0 (X11; U; Linux x86_64; ru; rv:1.9.0.4) Gecko/2008120916 Gentoo Firefox/3.0.4')]
+	if parameters: page_name += urllib.urlencode(parameters)
+	try: data, result = opener.open(page_name), True
+	except Exception, SM:
+		try: SM = str(SM)
+		except: SM = unicode(SM)
+		data, result = L('Error! %s') % SM.replace('>','').replace('<','').capitalize(), False
+	return data, result
+
+def load_page(page_name, parameters=None):
+	data, result = get_opener(page_name, parameters)
+	if result: return data.read(65536)
+	else: return data
+			
 def translate(text,gj):
 	text = text.strip()
 	trlang = {'sq':L('Albanian'),'en':L('English'),'ar':L('Arabic'),'af':L('Afrikaans'),
@@ -674,22 +695,24 @@ def translate(text,gj):
 		if len(text):
 			tx = text.lower().split(' ',2)
 			try:
-				if trlang.has_key(tx[0]) and trlang.has_key(tx[1]): lpair,tr_text = '%s|%s' % (tx[0],tx[1]),text.split(' ',2)[2]
-				elif trlang.has_key(tx[0]) and not trlang.has_key(tx[1]): lpair,tr_text = '|%s' % tx[0],text.split(' ',1)[1]
-				else: lpair,tr_text = '|%s' % getFile(lang_file,{})[gj],text
+				if trlang.has_key(tx[0]) and trlang.has_key(tx[1]): lfrom,lto,tr_text = tx[0],tx[1],text.split(' ',2)[2]
+				elif trlang.has_key(tx[0]) and not trlang.has_key(tx[1]): lfrom,lto,tr_text = '',tx[0],text.split(' ',1)[1]
+				else: lfrom,lto,tr_text = '',getFile(lang_file,{})[gj],text
 			except: return L('Incorrect language settings for translate. list - available languages.')
-			if len(tr_text):	
-				query = urllib.urlencode({'v':'1.0', 'q':tr_text.encode('utf-8'), 'langpair':lpair})
-				url = 'http://ajax.googleapis.com/ajax/services/language/translate?%s' % (query)
-				search_results = urllib.urlopen(url).read()
-				json = simplejson.loads(search_results)
-				try:
-					if json: return rss_replace(json['responseData']['translatedText'])
-					else: return L('I can\'t translate it!')
-				except: return L('Not correct responce from server')
+			if len(tr_text):
+				url = 'http://translate.google.ru/translate_a/t?'				
+				search_results = html_encode(load_page(url, {'client':'x',\
+															 'text':tr_text.encode("utf-8"),\
+															 'hl':lfrom,\
+															 'sl':lfrom,\
+															 'tl':lto}))
+				try: json = simplejson.loads(search_results)['sentences'][0]
+				except ValueError: json = None
+				if json: return rss_replace(json['trans'])
+				else: return L('I can\'t translate it!')
 			else: return L('What need to translate?')
 		else: return L('Command format: [from] [to] text')
-	
+		
 def messageCB(sess,mess):
 	global message_in
 	message_in += 1
@@ -781,7 +804,7 @@ OwnerCommands = [('update',bot_update,None),
 				 ('sh',bot_sh,True),
 				 ('exec',bot_exec,True),
 				 ('stats',bot_stats,None)]
-	
+
 def presenceCB(sess,mess):
 	global presence_in, online
 	presence_in += 1
@@ -794,18 +817,22 @@ def presenceCB(sess,mess):
 	if type == 'subscribe': 
 		j = Presence(jid, 'subscribed')
 		j.setTag('c', namespace=NS_CAPS, attrs={'node':capsNode,'ver':capsVersion})
-		sender(j,to)
+		try: sender(j,to)
+		except: pass
 		j = Presence(jid, 'subscribe')
 		j.setTag('c', namespace=NS_CAPS, attrs={'node':capsNode,'ver':capsVersion})
-		sender(j,to)
+		try: sender(j,to)
+		except: pass
 		pprint('Subscribe %s for %s' % (jid,getName(to)))
 	elif type == 'unsubscribed': 
 		j = Presence(jid, 'unsubscribe')
 		j.setTag('c', namespace=NS_CAPS, attrs={'node':capsNode,'ver':capsVersion})
-		sender(j,to)
+		try: sender(j,to)
+		except: pass
 		j = Presence(jid, 'unsubscribed')
 		j.setTag('c', namespace=NS_CAPS, attrs={'node':capsNode,'ver':capsVersion})
-		sender(j,to)
+		try: sender(j,to)
+		except: pass
 		pprint('Unsubscribe %s for %s' % (jid,getName(to)))
 		feedbase = getFile(feeds,[])
 		tf = []
@@ -873,7 +900,7 @@ def flush_stats():
 	pprint('Message in %s | out %s' % (message_in,message_out))
 	pprint('Presence in %s | out %s' % (presence_in,presence_out))
 	pprint('Iq in %s | out %s' % (iq_in,iq_out))
-	
+
 def disconnecter():
 	global bot_exit_type, game_over
 	pprint('--- Restart by disconnect handler! ---')
