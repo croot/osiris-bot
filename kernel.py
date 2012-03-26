@@ -837,7 +837,7 @@ def clean_old(param):
 	global feedbase, feeds
 	try: param = int(param)
 	except: return L('Choice days for clean!')
-	feedbase = getFile(feeds,[])]
+	feedbase = getFile(feeds,[])
 	recs = [t for t in feedbase if t[3] < time.time() - 86400*param]
 	jids = []
 	for t in recs:
