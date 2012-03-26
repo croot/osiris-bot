@@ -923,7 +923,7 @@ def feed_clean(text):
 	text = text.strip().lower()
 	if text == 'empty': return clean_empty()
 	elif text == 'black': return clean_black()
-	else return L('Unknown command!')
+	else: return L('Unknown command!')
 			
 def clean_empty():
 	global feedbase, feeds
