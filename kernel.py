@@ -800,8 +800,11 @@ def bot_stats():
 
 def feed_clean(text):
 	text = text.strip().lower()
+	try: text,param = text.split(' ',1)
+	except: pass
 	if text == 'empty': return clean_empty()
 	elif text == 'black': return clean_black()
+	elif text == 'old': return clean_old(param)
 	else: return L('Unknown command!')
 			
 def clean_empty():
@@ -821,6 +824,21 @@ def clean_black():
 	global feedbase, feeds
 	feedbase = getFile(feeds,[])
 	recs = [t for t in feedbase if is_ignored(t[4])]
+	jids = []
+	for t in recs:
+		if t[4] not in jids: jids.append(t[4])
+	tmp = []
+	for t in feedbase:
+		if t not in recs: tmp.append(t)
+	writefile(feeds,str(tmp))
+	return L('Cleaned %s records from jids: %s') % (len(recs),', '.join(jids))
+
+def clean_old(param):
+	global feedbase, feeds
+	try: param = int(param)
+	except: return L('Choice days for clean!')
+	feedbase = getFile(feeds,[])]
+	recs = [t for t in feedbase if t[3] < time.time() - 86400*param]
 	jids = []
 	for t in recs:
 		if t[4] not in jids: jids.append(t[4])
