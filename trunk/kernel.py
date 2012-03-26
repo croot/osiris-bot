@@ -803,7 +803,8 @@ OwnerCommands = [('update',bot_update,None),
 				 ('restart',bot_restart,None),
 				 ('sh',bot_sh,True),
 				 ('exec',bot_exec,True),
-				 ('stats',bot_stats,None)]
+				 ('stats',bot_stats,None),
+				 ('clean',feed_clean,True)]
 
 def presenceCB(sess,mess):
 	global presence_in, online
@@ -918,6 +919,39 @@ def kill_all_threads():
 			try: tmp.kill()
 			except: pass
 
+def feed_clean(text):
+	text = text.strip().lower()
+	if text == 'empty': return clean_empty()
+	elif text == 'black': return clean_black()
+	else return L('Unknown command!')
+			
+def clean_empty():
+	global feedbase, feeds
+	feedbase = getFile(feeds,[])
+	recs = [t for t in feedbase if t[5] == []]
+	jids = []
+	for t in recs:
+		if t[4] not in jids: jids.append(t[4])
+	tmp = []
+	for t in feedbase:
+		if t not in recs: tmp.append(t)
+	writefile(feeds,str(tmp))
+	return L('Cleaned %s records from jids: %s') % (len(recs),', '.join(jids))
+
+def clean_black():
+	global feedbase, feeds
+	feedbase = getFile(feeds,[])
+	recs = [t for t in feedbase if is_ignored(t[4])]
+	jids = []
+	for t in recs:
+		if t[4] not in jids: jids.append(t[4])
+	tmp = []
+	for t in feedbase:
+		if t not in recs: tmp.append(t)
+	writefile(feeds,str(tmp))
+	return L('Cleaned %s records from jids: %s') % (len(recs),', '.join(jids))
+
+	
 # --------------------- Иницилизация переменных ----------------------
 slog_folder = 'log/'					# папка системных логов
 LOG_FILENAME = slog_folder+'error.txt'	# логи ошибок
