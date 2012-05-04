@@ -608,17 +608,14 @@ def iqCB(sess,iq):
 
 		elif iq.getTag(name='query', namespace=xmpp.NS_TIME):
 			pprint('*** iq:time from '+unicode(nick))
-			gt=timeZero(gmtime())
-			t_utc=gt[0]+gt[1]+gt[2]+'T'+gt[3]+':'+gt[4]+':'+gt[5]
-			lt=tuple(localtime())
-			ltt=timeZero(lt)
+			t_utc='%s%02d%02dT%02d:%02d:%02d' % gmtime()[:6]
+			lt=localtime()
 			wday = [L('Mon'),L('Tue'),L('Wed'),L('Thu'),L('Fri'),L('Sat'),L('Sun')]
-			wlight = [L('Winter time'),L('Summer time')]
 			wmonth = [L('Jan'),L('Fed'),L('Mar'),L('Apr'),L('May'),L('Jun'),L('Jul'),L('Aug'),L('Sep'),L('Oct'),L('Nov'),L('Dec')]
-			t_display = ltt[3]+':'+ltt[4]+':'+ltt[5]+', '+ltt[2]+'.'+wmonth[lt[1]-1]+'\''+ltt[0]+', '+wday[lt[6]]+', '
-			if timeofset < 0: t_tz = 'GMT'+str(timeofset)
-			else: t_tz = 'GMT+'+str(timeofset)
-			t_display += t_tz + ', ' +wlight[lt[8]]
+			t_display = '%s:%02d:%02d, %s.%s\'%s, %s, ' % (lt[3],lt[4],lt[5],lt[2],wmonth[lt[1]-1],lt[0],wday[lt[6]])
+			if timeofset < 0: t_tz = 'GMT%s' % timeofset
+			else: t_tz = 'GMT+%s' % timeofset
+			t_display += t_tz
 			i=xmpp.Iq(to=nick, typ='result')
 			i.setAttr(key='id', val=id)
 			i.setQueryNS(namespace=xmpp.NS_TIME)
