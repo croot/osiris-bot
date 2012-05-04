@@ -788,7 +788,7 @@ def bot_sh(cmd):
 
 def bot_exec(text):
 	try: text = unicode(eval(text))
-	except Exception, SM: text = L('I can\'t execute it! Error: %s') % unicode(SM)[:msg_limit/2]
+	except Exception, SM: text = L('I can\'t execute it! Error: %s') % unicode(SM)
 	return text
 
 def bot_stats():
