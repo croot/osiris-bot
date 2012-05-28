@@ -698,11 +698,11 @@ def translate(text,gj):
 			except: return L('Incorrect language settings for translate. list - available languages.')
 			if len(tr_text):
 				url = 'http://translate.google.ru/translate_a/t?'				
-				search_results = html_encode(load_page(url, {'client':'x',\
-															 'text':tr_text.encode("utf-8"),\
-															 'hl':lfrom,\
-															 'sl':lfrom,\
-															 'tl':lto}))
+				search_results = load_page(url, {'client':'x',\
+												 'text':tr_text.encode("utf-8"),\
+												 'hl':lfrom,\
+												 'sl':lfrom,\
+												 'tl':lto})
 				try: json = simplejson.loads(search_results)['sentences'][0]
 				except ValueError: json = None
 				if json: return rss_replace(json['trans'])
