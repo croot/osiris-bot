@@ -246,7 +246,7 @@ def rss(text,jid,type,to):
 		if text[3].split('-')[0] not in mdd: return L('Mode %s not detected!') % text[3]
 		feedbase = getFile(feeds,[])
 		link = text[1]
-		if not link[:10].count('://'): link = 'http://'+link
+		if not re.findall('^http(s?)://',link[:10]): link = 'http://%s' % link
 		for dd in feedbase:
 			if dd[0] == link and dd[4] == jid:
 				feedbase.remove(dd)
@@ -265,7 +265,7 @@ def rss(text,jid,type,to):
 	elif mode == 'del':
 		feedbase = getFile(feeds,[])
 		link = text[1]
-		if not link[:10].count('://'): link = 'http://'+link
+		if not re.findall('^http(s?)://',link[:10]): link = 'http://%s' % link
 		msg = L('Can\'t find in schedule: %s') % link
 		for rs in feedbase:
 			if rs[0] == link and rs[4] == jid:
@@ -274,7 +274,7 @@ def rss(text,jid,type,to):
 				return L('Delete feed from schedule: %s') % link
 	elif mode == 'new' or mode == 'get':
 		link = text[1]
-		if not link[:10].count('://'): link = 'http://'+link
+		if not re.findall('^http(s?)://',link[:10]): link = 'http://%s' % link
 		try:
 			if int(''.join(re.findall('([0-9])+\.([0-9])+',sys.version)[0])) >= 26: # python 2.6 and higher
 				req = urllib2.Request(link.encode('utf-8'))
