@@ -214,7 +214,7 @@ def rss(text,jid,type,to):
 	if mode == 'add' and tl < 4: return 'add url timeH|M full|body|head[-url][-headline]'
 	elif mode == 'del' and tl < 2: return 'del url'
 	elif mode == 'new' and tl < 4: return 'new url max_feed_humber full|body|head[-url][-headline]'
-	elif mode == 'get' and tl < 4: return 'get url max_feed_humber full|body|head[-url][-headline]'
+	elif mode in ['get','init'] and tl < 4: return 'get url max_feed_humber full|body|head[-url][-headline]'
 	if mode == 'clear':
 		feedbase = getFile(feeds,[])
 		tf = []
@@ -252,16 +252,18 @@ def rss(text,jid,type,to):
 				feedbase.remove(dd)
 				break
 		timetype = text[2][-1:].lower()
-		if not (timetype == 'h' or timetype == 'm'): timetype = 'h'
+		if not (timetype == 'h' or timetype == 'm'): return 'Error! Type of time shald be H or M! F.e. 30M - 30 minutes, 1H - 1 hour'
 		try: ofset = int(text[2][:-1])
-		except: ofset = 4
+		except: return 'Error! Time value shald numeric! F.e. 30M - 30 minutes, 1H - 1 hour'
 		if timetype == 'm' and ofset < 10: timetype = '10m'
 		else: timetype = text[2]
 		feedbase.append([link, timetype, text[3], int(time.time()), getRoom(jid),[]]) # url time mode
 		writefile(feeds,str(feedbase))
-		msg = L('Added: %s (%s) %s') % (link,timetype,text[3])
+		rss_init = rss('init %s 1 %s' % (link,text[3]),jid,type,to)
+		if rss_init[0]: msg = L('Added: %s (%s) %s') % (link,timetype,text[3])
+		else: msg = rss_init[1]
 		sender(xmpp.Message(jid, msg, type),getRoom(to))
-		return rss('get %s 1 %s' % (link,text[3]),jid,type,to)
+
 	elif mode == 'del':
 		feedbase = getFile(feeds,[])
 		link = text[1]
@@ -272,7 +274,7 @@ def rss(text,jid,type,to):
 				feedbase.remove(rs)
 				writefile(feeds,str(feedbase))
 				return L('Delete feed from schedule: %s') % link
-	elif mode == 'new' or mode == 'get':
+	elif mode in ['new','get','init']:
 		link = text[1]
 		if not re.findall('^http(s?)://',link[:10]): link = 'http://%s' % link
 		try:
@@ -284,6 +286,7 @@ def rss(text,jid,type,to):
 		except:
 			rss_flush(jid,link,None)
 			if text[4] == 'silent': return None
+			elif mode == 'init': return [None,L('Unable to access server! %s') % link]
 			else: return L('Unable to access server! %s') % link
 		is_rss_aton,fc = 0,feed[:256]
 		if fc.count('<?xml version='):
@@ -324,7 +327,7 @@ def rss(text,jid,type,to):
 				t_msg,f_count = [],0
 				for mmsg in feed[1:rss_max_feed_limit+1]:
 					ttitle = get_tag(mmsg,'title').replace('&lt;br&gt;','\n')
-					if mode == 'get' or not (hashlib.md5(ttitle.encode('utf-8')).hexdigest() in tstop):
+					if mode in ['get','init'] or not (hashlib.md5(ttitle.encode('utf-8')).hexdigest() in tstop):
 						if is_rss_aton == 1:
 							tbody = get_tag(mmsg,'description').replace('&lt;br&gt;','\n')
 							turl = get_tag(mmsg,'link')
@@ -339,6 +342,7 @@ def rss(text,jid,type,to):
 						if submode == 'full': tmsg,tsubj = tbody,ttitle
 						elif submode == 'body': tmsg = tbody
 						elif submode[:4] == 'head': tsubj = ttitle
+						elif mode == 'init': return [None,'Unknown mode %s' % submode]
 						else: return None
 						if urlmode: tmurl = turl
 						t_msg.append((tmsg, tsubj.replace('\n','; '), tmurl))
@@ -355,12 +359,14 @@ def rss(text,jid,type,to):
 					if tmp[2]: i = xmpp.Message(to=jid, body=tmsg, typ=type, subject=replacer(tmp[1]),payload = [Node('x', {'xmlns': NS_X_OOB},[Node('url',{},tmp[2]),Node('desc',{},get_tag(feed[0],'title'))])])
 					else: i = xmpp.Message(to=jid, body=tmsg, typ=type, subject=replacer(tmp[1]))
 					sender(i,getRoom(to))
-				return None
+				if mode == 'init': return [True]
+				else: return None
 			except Exception, SM:
 				try: SM = str(SM)
 				except: SM = unicode(SM)
 				rss_flush(jid,link,None)
 				if text[4] == 'silent': return None
+				elif mode == 'init': return [None,L('Error! %s') % SM]
 				else: return L('Error! %s') % SM
 		else:
 			rss_flush(jid,link,None)
@@ -371,7 +377,8 @@ def rss(text,jid,type,to):
 				else: titl = ''
 				if feed != L('Encoding error!'): title = get_tag(feed,titl)
 				else: title = feed
-				return L('Bad url or rss/atom not found at %s - %s') % (html_encode(link),html_encode(title))
+				if mode == 'init': return [None,L('Bad url or rss/atom not found at %s - %s') % (html_encode(link),html_encode(title))]
+				else: return L('Bad url or rss/atom not found at %s - %s') % (html_encode(link),html_encode(title))
 	else: return 'show|add|del|clear|new|get'
 
 class KThread(threading.Thread):
@@ -632,6 +639,16 @@ def iqCB(sess,iq):
 			i.setTag('query',namespace=xmpp.NS_LAST,attrs={'seconds':str(int(time.time())-starttime)})
 			sender(i,getRoom(to))
 			raise xmpp.NodeProcessed
+	elif iq.getType()=='set':
+		if iq.getAttr('from') == iq.getAttr('to'):
+			try: iq_subscr = i.getTag('query',namespace=xmpp.NS_ROSTER).getTag('item').getAttr('subscription')
+			except: iq_subscr = None
+			try: iq_jid = i.getTag('query',namespace=xmpp.NS_ROSTER).getTag('item').getAttr('jid')
+			except: iq_jid = None
+			if iq_subscr == 'remove' and is_ignored(iq_jid):
+				i=xmpp.Iq(to=nick, typ='result')
+				i.setAttr(key='id', val=id)
+				sender(i,getRoom(to))
 
 def get_opener(page_name, parameters=None):
 	socket.setdefaulttimeout(20)
@@ -749,7 +766,7 @@ def messageCB(sess,mess):
 			if whoami[0] == 'rss': text = 'type show|add|del|clear|new|get and follow instructions'
 			elif whoami[0] == 'translate': text = '[from] [to] text - translate\nlist - languages list\ninfo two char of lang - show language name\nset two char of lang - set default language'
 			else: text == L('Not configured now!')
-		elif whoami[0] == 'rss': text = rss(text,jid,type,to)
+		elif whoami[0] == 'rss' and not text.startswith('init'): text = rss(text,jid,type,to)
 		elif whoami[0] == 'translate': text = translate(text,gj)
 		else: text == L('Not configured now!')
 	if text: sender(xmpp.Message(jid, text[:limit], type),getRoom(to))
@@ -853,13 +870,37 @@ OwnerCommands = [('update',bot_update,None),
 				 ('stats',bot_stats,None),
 				 ('clean',feed_clean,True)]
 
+def unsubscribe(jid,to):
+	j = Presence(jid, 'unsubscribe')
+	j.setTag('c', namespace=NS_CAPS, attrs={'node':capsNode,'ver':capsVersion})
+	try: sender(j,to)
+	except: pass
+	j = Presence(jid, 'unsubscribed')
+	j.setTag('c', namespace=NS_CAPS, attrs={'node':capsNode,'ver':capsVersion})
+	try: sender(j,to)
+	except: pass
+	pprint('Unsubscribe %s for %s' % (jid,getName(to)))
+	feedbase = getFile(feeds,[])
+	tf = []
+	for taa in feedbase:
+		if taa[4] != jid: tf.append(taa)
+	feedbase = tf
+	writefile(feeds,str(feedbase))
+	i=xmpp.Iq(typ='set')
+	i.setAttr(key='id', val=iq_out)
+	i.setTag('query',namespace=xmpp.NS_ROSTER)
+	i.getTag('query',namespace=xmpp.NS_ROSTER).setTag('item',attrs={'subscription':'remove','jid':jid})
+	sender(i,to)
+
 def presenceCB(sess,mess):
 	global presence_in, online
 	presence_in += 1
 	type=unicode(mess.getType())
 	jid=getRoom(unicode(mess.getFrom().getStripped())).lower()
-	if is_ignored(jid): return
 	to=getRoom(unicode(mess.getTo()))
+	if is_ignored(jid):
+		if '@' in jid: unsubscribe(jid,to)
+		return
 	if jid == to: return
 
 	if type == 'subscribe': 
@@ -872,23 +913,8 @@ def presenceCB(sess,mess):
 		try: sender(j,to)
 		except: pass
 		pprint('Subscribe %s for %s' % (jid,getName(to)))
-	elif type == 'unsubscribed': 
-		j = Presence(jid, 'unsubscribe')
-		j.setTag('c', namespace=NS_CAPS, attrs={'node':capsNode,'ver':capsVersion})
-		try: sender(j,to)
-		except: pass
-		j = Presence(jid, 'unsubscribed')
-		j.setTag('c', namespace=NS_CAPS, attrs={'node':capsNode,'ver':capsVersion})
-		try: sender(j,to)
-		except: pass
-		pprint('Unsubscribe %s for %s' % (jid,getName(to)))
-		feedbase = getFile(feeds,[])
-		tf = []
-		for taa in feedbase:
-			if taa[4] != jid: tf.append(taa)
-		feedbase = tf
-		writefile(feeds,str(feedbase))
-	if type == 'unavailable' and jid in online: online.remove(jid)
+	elif type == 'unsubscribed': unsubscribe(jid,to)
+	elif type == 'unavailable' and jid in online: online.remove(jid)
 	elif not jid in online: online.append(jid)
 
 def getName(jid):
