@@ -720,9 +720,9 @@ def translate(text,gj):
 												 'hl':lfrom,\
 												 'sl':lfrom,\
 												 'tl':lto})
-				try: json = simplejson.loads(search_results)['sentences'][0]
-				except ValueError: json = None
-				if json: return rss_replace(json['trans'])
+				try: jsonl = simplejson.loads(search_results)['sentences']
+				except ValueError: jsonl = None
+				if jsonl: return rss_replace(''.join(t['trans'] for t in jsonl))
 				else: return L('I can\'t translate it!')
 			else: return L('What need to translate?')
 		else: return L('Command format: [from] [to] text')
